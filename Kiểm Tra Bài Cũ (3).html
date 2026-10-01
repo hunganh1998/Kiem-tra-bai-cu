@@ -1,0 +1,591 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Kiểm Tra Bài Cũ</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--ink:#1a1c2c;--pan:#29366f;--edge:#5d6dc4;--gold:#ffcd75;--grn:#38b764;--red:#b13e53;--org:#ef7d57;--sky:#a8e6ff;--pur:#7b4dab}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:radial-gradient(circle at 50% -10%,#2a2d4a 0%,var(--ink) 65%);color:#f4f4f4;font:22px/1.25 VT323,'Courier New',monospace;display:flex;justify-content:center;overflow:hidden}
+#w{width:min(100%,960px);height:100dvh;display:flex;flex-direction:column;padding:8px;gap:8px;overflow:hidden}
+#st{flex:0 0 auto;position:relative;width:100%;max-width:calc(52dvh * 16 / 9);margin:0 auto;aspect-ratio:16/9;border:4px solid #000;box-shadow:0 0 0 4px var(--edge),0 8px 0 rgba(0,0,0,.35);background:#000;overflow:hidden}
+#cv{display:block;width:100%;height:100%;image-rendering:pixelated}
+#mu{position:fixed;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);padding:0 10px;z-index:30;opacity:.9}
+#pop{position:absolute;left:50%;top:40%;transform:translateX(-50%);font:44px 'Press Start 2P',monospace;color:#fff;text-shadow:3px 3px 0 #000;opacity:0;pointer-events:none;white-space:nowrap;z-index:4;letter-spacing:2px}
+#pop.go{animation:pp 1.3s steps(10) forwards}
+#pop.g{color:var(--gold)}#pop.r{color:var(--org)}
+@keyframes pp{0%{opacity:1;top:60%;transform:translateX(-50%) scale(.6)}40%{transform:translateX(-50%) scale(1.15)}100%{opacity:0;top:18%;transform:translateX(-50%) scale(1)}}
+#ui{flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;background:var(--pan);border:4px solid #000;box-shadow:inset 0 0 0 4px var(--edge),0 0 0 4px var(--ink);padding:16px;position:relative;border-radius:2px}
+
+/* ============ PLAYING MODE (dedicated quiz screen) ============ */
+body.playing #st{display:none}
+body.playing #ui{
+  border:none;box-shadow:none;border-radius:6px;
+  background:linear-gradient(180deg,#1f2240 0%,#0a0c18 100%);
+  padding:0;overflow:hidden;
+  border:3px solid var(--edge);
+}
+body.playing #ui::before{
+  content:'';position:absolute;inset:0;pointer-events:none;opacity:.15;
+  background-image:
+    linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+  background-size:20px 20px;
+}
+
+/* Buttons */
+button{font:inherit;color:var(--ink);background:var(--gold);border:4px solid #000;box-shadow:inset -4px -4px 0 var(--org),4px 4px 0 #000;padding:6px 14px;cursor:pointer;text-transform:uppercase;transition:transform .06s;border-radius:2px}
+button:hover{background:#fff;transform:translate(-1px,-1px)}
+button:active{transform:translate(3px,3px);box-shadow:none}
+button:disabled{cursor:default;transform:none;opacity:.7}
+
+/* Menu headings */
+h1{font-size:clamp(40px,9vw,72px);line-height:.95;color:var(--gold);text-shadow:4px 4px 0 var(--red),8px 8px 0 #000;margin:0 0 10px;text-align:center;letter-spacing:2px}
+h2{margin:0 0 10px;color:var(--gold);font-size:30px}h3{margin:6px 0;color:var(--gold)}
+.sub{font:10px 'Press Start 2P',monospace;text-align:center;color:var(--sky);margin:0 0 14px;letter-spacing:2px}
+.bt{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:12px 0}
+.gr{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));gap:10px}
+.cd{background:var(--ink);border:4px solid var(--edge);padding:10px;cursor:pointer;display:flex;flex-direction:column;gap:4px;transition:.15s;border-radius:2px}
+.cd:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 0 rgba(0,0,0,.4)}
+.cd em{color:var(--gold);font-style:normal}.cd i{color:var(--sky);font-style:normal}.cd.lk{opacity:.45;cursor:default}
+.sm{margin-top:12px}.res{text-align:center}.big{font-size:56px;color:var(--gold);font-family:'Press Start 2P',monospace;letter-spacing:2px}.stars{font-size:46px;color:var(--gold)}.ac{color:var(--grn);margin:2px}
+/* Level bar */
+.lvwrap{display:flex;align-items:center;gap:10px;background:#0a0c18;border:3px solid var(--edge);padding:8px 12px;margin:8px 0;border-radius:2px}
+.lv{font-family:'Press Start 2P',monospace;font-size:12px;color:var(--gold)}
+.lvbar{flex:1;height:16px;background:#000;border:3px solid #000;box-shadow:inset 0 0 0 2px var(--edge);position:relative;border-radius:2px;overflow:hidden}
+.lvfill{height:100%;background:linear-gradient(90deg,var(--gold),var(--org));transition:width .5s}
+.lvtxt{font-size:16px;color:var(--sky)}
+.streak{display:inline-flex;align-items:center;gap:6px;background:#0a0c18;border:3px solid var(--org);padding:4px 10px;font-family:'Press Start 2P',monospace;font-size:11px;color:var(--org);border-radius:2px}
+
+/* ============ QUESTION SCREEN ============ */
+.qscreen{position:relative;display:flex;flex-direction:column;height:100%;padding:12px;gap:10px;z-index:1}
+
+.qtop{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.qchap{color:var(--gold);font-family:'Press Start 2P',monospace;font-size:11px;letter-spacing:1px}
+.qscore{color:var(--gold);font-family:'Press Start 2P',monospace;font-size:13px}
+.qscore small{color:var(--sky);font-size:16px;font-family:VT323,monospace;margin-left:4px}
+.qdots{display:flex;gap:4px}
+.qdot{width:10px;height:10px;background:#000;border:2px solid var(--edge);border-radius:50%}
+.qdot.done{background:var(--grn);border-color:#000}
+.qdot.cur{background:var(--gold);border-color:#000;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.25)}}
+
+/* Hero: avatar + speech bubble */
+.qhero{display:flex;gap:10px;align-items:flex-start;flex:0 0 auto}
+.qavatar{flex:0 0 auto;width:76px;height:76px;background:#0a0c18;border:3px solid var(--edge);border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:3px 3px 0 rgba(0,0,0,.5)}
+.qavatar canvas{width:100%;height:100%;image-rendering:pixelated;display:block}
+.qbubble{flex:1 1 auto;position:relative;background:#f4f4f4;color:var(--ink);border:3px solid #000;padding:10px 14px;border-radius:4px;font-size:clamp(17px,2.4vw,21px);line-height:1.25;box-shadow:4px 4px 0 rgba(0,0,0,.45);min-height:56px;max-height:24dvh;overflow-y:auto}
+.qbubble::before{content:'';position:absolute;left:-11px;top:18px;width:0;height:0;border:8px solid transparent;border-right-color:#000}
+.qbubble::after{content:'';position:absolute;left:-6px;top:19px;width:0;height:0;border:7px solid transparent;border-right-color:#f4f4f4}
+.qtag{display:inline-block;background:var(--org);color:var(--ink);padding:1px 8px;margin-right:6px;font:11px 'Press Start 2P',monospace;vertical-align:2px;border-radius:2px}
+
+/* Timer */
+.qtimer{position:relative;height:24px;background:#000;border:3px solid #000;box-shadow:inset 0 0 0 2px var(--edge);border-radius:2px;overflow:hidden;flex:0 0 auto}
+#bar{height:100%;background:linear-gradient(90deg,var(--grn),#5fd47e);width:100%;transition:width .12s linear}
+#bar.lo{background:linear-gradient(90deg,var(--red),var(--org));animation:bl .5s steps(2) infinite}
+@keyframes bl{50%{opacity:.5}}
+.qtimer b{position:absolute;right:8px;top:3px;font:11px 'Press Start 2P',monospace;color:#fff;text-shadow:2px 2px 0 #000}
+
+/* Answers */
+.qopts{display:grid;grid-template-columns:1fr;gap:8px;flex:1 1 auto;min-height:0;align-content:start}
+@media (min-width:560px){.qopts{grid-template-columns:1fr 1fr}}
+.qopt{display:flex;align-items:center;gap:10px;background:#f4f4f4;color:var(--ink);border:3px solid #000;box-shadow:inset -3px -3px 0 #b9b9c9,3px 3px 0 #000;padding:8px 12px;text-align:left;cursor:pointer;font:inherit;text-transform:none;line-height:1.2;border-radius:2px;min-height:48px;transition:.06s}
+.qopt:hover:not(:disabled){background:#fff;transform:translate(-1px,-1px)}
+.qopt:active:not(:disabled){transform:translate(2px,2px);box-shadow:inset -1px -1px 0 #b9b9c9,1px 1px 0 #000}
+.qopt b{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:var(--pan);color:var(--gold);border:2px solid #000;font:13px 'Press Start 2P',monospace;flex-shrink:0;border-radius:2px}
+.qopt span{flex:1}
+.qopt.ok{background:var(--grn);color:#fff}.qopt.ok b{background:#fff;color:var(--grn)}
+.qopt.no{background:var(--red);color:#fff}.qopt.no b{background:#000;color:#fff}
+.qopt:disabled{cursor:default}
+
+/* Tools */
+.qtools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex:0 0 auto}
+.qtools button{font-size:15px;padding:4px 10px;box-shadow:inset -3px -3px 0 var(--org),3px 3px 0 #000}
+#combo{background:var(--org);color:var(--ink);border:3px solid #000;padding:3px 8px;font:10px 'Press Start 2P',monospace;box-shadow:2px 2px 0 #000;display:none;border-radius:2px}
+#combo.on{display:inline-block;animation:cmb .4s ease-out}
+@keyframes cmb{0%{transform:scale(1.6) rotate(-6deg)}100%{transform:scale(1) rotate(0)}}
+
+/* Feedback overlay */
+.fb-overlay{position:absolute;inset:0;background:rgba(10,12,24,.97);display:none;flex-direction:column;justify-content:center;padding:20px;z-index:10;animation:fadeIn .22s ease-out;overflow-y:auto}
+.fb-overlay.on{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.fbinner{max-width:640px;margin:0 auto;width:100%;border:4px solid;padding:16px;border-radius:4px;background:#0a0c18}
+.fbinner.g{border-color:var(--grn);box-shadow:0 0 0 4px rgba(56,183,100,.18)}
+.fbinner.r{border-color:var(--red);box-shadow:0 0 0 4px rgba(177,62,83,.18)}
+.fbinner h3{margin:0 0 8px;font-family:'Press Start 2P',monospace;font-size:14px;letter-spacing:1px}
+.fbinner.g h3{color:var(--grn)}.fbinner.r h3{color:var(--org)}
+.fbinner p{margin:8px 0;font-size:20px;line-height:1.3}
+.fbinner small{display:block;color:var(--sky);margin:10px 0 14px;font-size:16px}
+.fbinner .next-btn{width:100%;margin-top:8px;padding:12px;font-size:20px}
+</style></head><body>
+<div id="w">
+  <div id="st"><canvas id="cv" width="320" height="180"></canvas><div id="pop"></div></div>
+  <button id="mu" onclick="Snd.tog(this)" title="Bật/tắt nhạc và âm thanh">♪</button>
+  <div id="ui"></div>
+</div>
+
+<script type="application/json" id="data">
+{"chapters":[
+{"title":"Introduction to EF","qs":[
+{"d":1,"t":"mc","q":"Theo Da Rin (2020), tài chính khởi nghiệp là gì?","o":["Cho vay tiêu dùng lãi suất thấp dành cho các cá nhân","Cung cấp vốn cho mọi doanh nghiệp nhỏ đã hoạt động lâu năm","Cung cấp vốn cho các công ty trẻ, đổi mới, định hướng tăng trưởng","Quản lý ngân quỹ và chính sách cổ tức của tập đoàn niêm yết"],"a":2,"e":"Công ty được tài trợ phải trẻ (thường dưới 10 năm), đổi mới và có tham vọng tăng trưởng lớn, khác với SME truyền thống.","s":"Lecture 1 · Slide 11"},
+{"d":1,"t":"mc","q":"Năm giai đoạn của vòng đời một venture thành công theo đúng thứ tự?","o":["Startup → Development → Survival → Rapid-Growth → Early-Maturity","Development → Survival → Startup → Early-Maturity → Rapid-Growth","Survival → Development → Startup → Rapid-Growth → Early-Maturity","Development → Startup → Survival → Rapid-Growth → Early-Maturity"],"a":3,"e":"Venture đi từ ý tưởng (Development) đến giai đoạn trưởng thành sớm (Early-Maturity).","s":"Lecture 1 · Slide 21"},
+{"d":2,"t":"mc","q":"Trong khung FIRE, bước nào là quá trình chốt thỏa thuận: tiền đổi lấy quyền sở hữu?","o":["Fit","Invest","Exit","Ride"],"a":1,"e":"INVEST là bước đóng deal. Fit là tìm kiếm và chọn lựa đối tác, Ride là hành trình phát triển sau đó, Exit là thoái vốn.","s":"Lecture 1 · Slide 32"},
+{"d":3,"t":"mc","sc":1,"q":"Startup X đã có doanh thu nhưng chưa đủ trang trải chi phí. Ban lãnh đạo tập trung quản lý dòng tiền và tìm vốn bên ngoài để bù lỗ hoạt động. X đang ở giai đoạn nào?","o":["Rapid-Growth","Startup","Survival","Development"],"a":2,"e":"Survival: doanh thu bắt đầu tăng nhưng chỉ trả được một phần chi phí; trọng tâm là quản lý dòng tiền và huy động vốn ngoài.","s":"Lecture 1 · Slide 25"},
+{"d":1,"t":"tf","q":"Đúng hay Sai: Trong định nghĩa của Da Rin, công ty 'young' thường là công ty hoạt động chưa tới 10 năm.","a":0,"e":"Đúng. Young: thường dưới 10 năm; Innovative: về công nghệ hoặc mô hình kinh doanh; Growth-oriented: khác với SME.","s":"Lecture 1 · Slide 11"},
+{"d":2,"t":"mc","q":"Điểm khác biệt cốt lõi giữa entrepreneurial venture và doanh nghiệp nhỏ truyền thống?","o":["Venture không bao giờ cần đến nguồn vốn bên ngoài để tăng trưởng","Tham vọng tăng trưởng lớn nhờ đổi mới, không chỉ duy trì quy mô nhỏ","Chỉ khác nhau về số lượng nhân viên được tuyển dụng ban đầu","Venture luôn có lợi nhuận ổn định ngay từ những năm đầu hoạt động"],"a":1,"e":"Venture hướng tới tăng trưởng nhanh, đổi mới và thường cần vốn ngoài do dòng tiền âm kéo dài.","s":"Lecture 1 · Slide 11-12"},
+{"d":2,"t":"mc","q":"Khung FUEL tập trung vào đối tượng và nội dung nào?","o":["Ngân hàng: các loại khoản vay và điều kiện tài sản đảm bảo","Công ty: định giá trước và sau đầu tư qua từng vòng gọi vốn","Nhà đầu tư: cấu trúc, động cơ, chuyên môn và phong cách vận hành","Nhà sáng lập: hành trình qua bốn bước liên tiếp của quá trình gọi vốn"],"a":2,"e":"FUEL = Fundamental structure, Underlying motivation, Expertise & networks, Logic & style: nhà đầu tư không thể thay thế cho nhau.","s":"Lecture 1 · Slide 39"},
+{"d":2,"t":"mc","q":"Việc điều chỉnh (pivot) chiến lược khi học hỏi thêm về công ty và thị trường thuộc bước nào của FIRE?","o":["Fit","Exit","Invest","Ride"],"a":3,"e":"Ride là hành trình sau khi đầu tư: học hỏi, pivot, xây hoặc phá niềm tin, và quản trị (vai trò hội đồng quản trị).","s":"Lecture 1 · Slide 35"},
+{"d":3,"t":"mc","q":"Phân biệt staging và tranching trong tài trợ theo giai đoạn?","o":["Hai khái niệm giống nhau, đều chỉ việc phát hành thêm cổ phiếu trước IPO","Staging là các vòng gọi vốn riêng biệt; tranching là chia một vòng thành nhiều đợt giải ngân","Staging chỉ dùng cho khoản vay; tranching chỉ dùng cho vốn cổ phần","Staging là chia một vòng thành nhiều đợt giải ngân; tranching là các vòng gọi vốn riêng biệt"],"a":1,"e":"Staging: nhiều vòng cách nhau 12-18 tháng gắn với milestone. Tranching: chia một vòng thành các khoản thanh toán nhỏ hơn.","s":"Lecture 1 · Slide 37"},
+{"d":2,"t":"mc","q":"Khi tài trợ bằng nợ, bên cho vay nhận được gì từ khoản đầu tư?","o":["Một phần quyền sở hữu tương ứng với số tiền đã cho vay","Quyền biểu quyết tại hội đồng quản trị của công ty vay","Gốc cùng lãi, hoàn trả vào các thời điểm đã định trước","Phần chia lợi nhuận thay đổi theo kết quả kinh doanh mỗi năm"],"a":2,"e":"Với nợ, nhà đầu tư là chủ nợ (creditor): đưa principal và được hứa trả gốc cộng lãi theo lịch định trước, không nhận cổ phần.","s":"Lecture 1 · Slide 41"},
+{"d":3,"t":"mc","sc":1,"q":"Một founder đang ở giai đoạn Development, mới có ý tưởng và cần dựng prototype. Nguồn vốn nào phù hợp nhất theo vòng đời?","o":["Mezzanine financing và venture debt của các quỹ chuyên biệt","Vay thế chấp từ ngân hàng thương mại như một doanh nghiệp trưởng thành","Phát hành cổ phiếu ra công chúng với sự hỗ trợ của ngân hàng đầu tư","Bootstrapping, bạn bè và gia đình, crowdfunding dạng rewards"],"a":3,"e":"Seed financing ở giai đoạn Development dựa vào tài sản của founder, bạn bè và gia đình, crowdfunding.","s":"Lecture 1 · Slide 45"},
+{"d":3,"t":"mc","sc":1,"q":"Một công ty ở giai đoạn Early-Maturity có dòng tiền dương mạnh, lịch sử hoạt động rõ ràng và tài sản đảm bảo. Nguồn vốn nào trở nên dễ tiếp cận hơn?","o":["Khoản vay cá nhân và thẻ tín dụng của người sáng lập","Lợi nhuận giữ lại và vay ngân hàng thương mại truyền thống","Crowdfunding dạng donation và vốn từ chương trình ươm tạo","Vốn seed từ nhà đầu tư thiên thần và quỹ VC giai đoạn sớm"],"a":1,"e":"Seasoned financing: retained earnings, vay ngân hàng truyền thống (nhờ lịch sử và tài sản đảm bảo) và thị trường công chúng.","s":"Lecture 1 · Slide 49"},
+{"d":2,"t":"tf","q":"Đúng hay Sai: Tỷ lệ thất bại của startup không có VC hậu thuẫn là 40%, còn startup có VC hậu thuẫn là 79%.","a":1,"e":"Sai, ngược lại: 79% với startup không có VC và 40% với startup có VC hậu thuẫn.","s":"Lecture 1 · Slide 52"},
+{"d":2,"t":"mc","q":"'Up-or-out dynamics' của các venture mô tả điều gì?","o":["Nhà đầu tư buộc phải thoái vốn hoặc nắm giữ cổ phần của công ty vô thời hạn","Công ty buộc phải niêm yết hoặc đóng cửa trong vòng mười hai tháng đầu tiên","Nhân viên được thăng chức hoặc bị cho nghỉ sau mỗi vòng gọi vốn kế tiếp","Tạo nhiều việc làm ban đầu, và công ty thành công tạo thêm việc"],"a":3,"e":"Ventures tạo nhiều việc làm ngay từ đầu và các công ty thành công duy trì tạo thêm việc làm.","s":"Lecture 1 · Slide 19"},
+{"d":3,"t":"mc","q":"Ba nguyên tắc cốt lõi làm nền cho nhu cầu về một framework?","o":["Định giá, pha loãng và thoái vốn","Tăng trưởng, lợi nhuận và dòng tiền","Gom nguồn lực, bất định và thử nghiệm","Đa dạng hóa, thanh khoản và đòn bẩy"],"a":2,"e":"Resource-Gathering, Uncertainty, Experimentation.","s":"Lecture 1 · Slide 29"},
+{"d":3,"t":"mc","sc":1,"q":"Lợi nhuận bắt đầu xuất hiện nhưng dòng tiền tự do vẫn chậm hơn do phải tái đầu tư lớn vào hàng tồn kho và tài sản cố định. Đây là giai đoạn nào?","o":["Startup","Early-Maturity","Rapid-Growth","Survival"],"a":2,"e":"Ở Rapid-Growth, lợi nhuận bắt đầu và tăng nhưng free cash flow thường chậm hơn; thiếu hụt tiền vẫn có thể xảy ra.","s":"Lecture 1 · Slide 26"},
+{"d":4,"t":"mc","sc":1,"b":1,"q":"FINAL CHALLENGE: Founder gọi vốn theo nhiều vòng (staging), cách nhau 12-18 tháng, gắn với các milestone. Nhận định nào đúng?","o":["Loại bỏ rủi ro tái tài trợ vì vốn luôn được cam kết trước đó","Làm tăng pha loãng và chi phí gọi vốn so với một vòng lớn duy nhất","Chỉ có lợi cho founder, nhà đầu tư không có lợi ích nào thêm","Giảm chi phí gọi vốn và pha loãng, nhưng tạo rủi ro tái tài trợ"],"a":3,"e":"Với founder, staging giảm chi phí gọi vốn và pha loãng nhưng có refinancing risk; với nhà đầu tư, staging tạo option value chờ đợi và tăng kiểm soát nhờ power of the purse.","s":"Lecture 1 · Slide 37"}]},
+{"title":"Evaluating Venture Opportunities (VEM)","qs":[
+{"d":1,"t":"mc","q":"Venture Evaluation Matrix (VEM) gồm bao nhiêu ô (cell) chính?","o":["9","6","12","3"],"a":0,"e":"VEM có 3 hàng (Value Proposition, Industry, Strategy) × 3 cột (Customer, Company, Entrepreneur) = 9 ô.","s":"Lecture 2 · Slide 4, 14"},
+{"d":1,"t":"tf","q":"Đúng hay Sai: Hàng Strategy của VEM mang góc nhìn động (dynamic), xem công ty định hình và nắm bắt giá trị thế nào.","a":0,"e":"Đúng. Value Proposition là góc nhìn micro, Industry là macro, Strategy là dynamic.","s":"Lecture 2 · Slide 15"},
+{"d":2,"t":"mc","q":"Ô Network nằm ở vị trí nào trong VEM?","o":["Hàng Industry, cột Entrepreneur","Hàng Strategy, cột Entrepreneur","Hàng Strategy, cột Customer","Hàng Value Proposition, cột Company"],"a":0,"e":"Hàng Industry gồm Market (Customer), Competition (Company), Network (Entrepreneur).","s":"Lecture 2 · Slide 22"},
+{"d":3,"t":"mc","sc":1,"q":"Nhóm sáng lập có công nghệ rất ấn tượng nhưng chưa hề kiểm tra xem khách hàng có thực sự cần nó không. Họ mắc lỗi phổ biến nào và cần quay lại ô nào của VEM?","o":["Quy trình sản xuất chưa đủ khả năng mở rộng (ô Production)","Tập trung vào giải pháp trước khi hiểu nhu cầu thật (ô Need)","Định giá sản phẩm quá thấp so với các đối thủ (ô Sales)","Thiếu mạng lưới cố vấn và nhà đầu tư cũ (ô Network)"],"a":1,"e":"Không có nhu cầu khách hàng thật thì không có cơ hội kinh doanh. Cần kiểm tra Need: nhu cầu là must-have hay nice-to-have, khách sẵn sàng trả bao nhiêu.","s":"Lecture 2 · Slide 17"},
+{"d":1,"t":"mc","q":"Ba hàng (perspectives) của VEM là gì?","o":["Solution, Competition, Production (các ô thuộc cột Company)","Value Proposition, Industry, Strategy (ba hàng của ma trận)","Customer, Company, Entrepreneur (ba cột của ma trận)","Need, Market, Sales (các ô thuộc cột Customer của ma trận)"],"a":1,"e":"Ba hàng: Value Proposition (micro), Industry (macro), Strategy (dynamic).","s":"Lecture 2 · Slide 15"},
+{"d":1,"t":"mc","q":"Cột nào của VEM tập trung vào đội ngũ, mạng lưới và tổ chức?","o":["Industry","Customer","Company","Entrepreneur"],"a":3,"e":"Cột Entrepreneur gồm Team, Network, Organization.","s":"Lecture 2 · Slide 15"},
+{"d":2,"t":"mc","q":"Ô nào của VEM trả lời: công ty tiếp cận khách hàng, phân phối và định giá như thế nào?","o":["Sales","Market","Need","Production"],"a":0,"e":"Ô 3.1 Sales: kênh tiếp cận, chiến lược phân phối, mô hình doanh thu và định giá.","s":"Lecture 2 · Slide 29"},
+{"d":2,"t":"mc","q":"Hàng Value Proposition (góc nhìn micro) giúp kết luận điều gì về cơ hội?","o":["Quy mô tiềm năng, tức khả năng mở rộng ra thị trường lớn hơn","Giá trị tiềm năng, tức khả năng tạo ra giá trị","Mức độ rủi ro pháp lý của ngành mà công ty hoạt động","Khả năng tăng trưởng và nắm bắt giá trị trong dài hạn"],"a":1,"e":"Value Proposition: giá trị tiềm năng; Industry: quy mô tiềm năng; Strategy: tiềm năng tăng trưởng.","s":"Lecture 2 · Slide 35"},
+{"d":2,"t":"tf","q":"Đúng hay Sai: Theo bài giảng, các nhà đầu tư thường xếp đội ngũ sáng lập là một trong những yếu tố quan trọng nhất khi lựa chọn dự án.","a":0,"e":"Đúng. Chất lượng đội ngũ là then chốt cho thực thi; nhà đầu tư thường xếp team là yếu tố quan trọng nhất trong lựa chọn.","s":"Lecture 2 · Slide 21"},
+{"d":3,"t":"mc","q":"Câu hỏi nào dưới đây thuộc về ô Market (khách hàng, hàng Industry)?","o":["Chiến lược tuyển dụng, phát triển và giữ chân nhân tài ra sao?","Ai là đối thủ trực tiếp và gián tiếp, họ mạnh yếu ở những điểm nào?","Nhóm sáng lập có đủ kỹ năng, kinh nghiệm cần thiết để thực thi không?","Phân khúc mục tiêu lớn cỡ nào, tăng nhanh ra sao, được chấp nhận thế nào?"],"a":3,"e":"Market: quy mô phân khúc, tốc độ tăng trưởng, quá trình chấp nhận. Các câu còn lại thuộc Competition, Team, Organization.","s":"Lecture 2 · Slide 23"},
+{"d":3,"t":"mc","sc":1,"q":"Nhà đầu tư muốn hiểu vị thế cạnh tranh tương đối của venture. Bài giảng gắn công cụ nào với ô Competition để có cái nhìn đa chiều?","o":["Mô hình DCF của đối thủ niêm yết","SWOT của các đối thủ chính","Điều khoản term sheet của vòng trước","Bảng cân đối kế toán dự phóng"],"a":1,"e":"SWOT cho các đối thủ chính cho cái nhìn đa chiều về vị thế cạnh tranh của venture.","s":"Lecture 2 · Slide 25"},
+{"d":3,"t":"mc","q":"Lợi thế cạnh tranh 'Customer access' bắt nguồn từ đâu và dựa trên động lực nào?","o":["Cột Entrepreneur (Team, Network, Organization); năng lực lãnh đạo","Cột Customer (Need, Market, Sales); lòng trung thành của khách hàng","Cột Company (Solution, Competition, Production); sở hữu trí tuệ độc quyền","Hàng Strategy (Sales, Production, Organization); kỷ luật kiểm soát chi phí"],"a":1,"e":"Customer access đến từ cột Customer, nền tảng là lòng trung thành khách hàng, thường xây bằng lợi thế đi đầu và uy tín.","s":"Lecture 2 · Slide 36"},
+{"d":3,"t":"mc","sc":1,"q":"Một startup có đội ngũ giàu kinh nghiệm, gắn kết, mạng lưới ngành mạnh và văn hóa tổ chức tích cực. Điểm mạnh này phản ánh lợi thế nào?","o":["First-mover advantage (lợi thế đi đầu)","Customer access (tiếp cận khách hàng)","Entry barriers (rào cản gia nhập)","Competencies (năng lực cốt lõi)"],"a":3,"e":"Competencies đến từ cột Entrepreneur: team, network, organization; phụ thuộc vào lãnh đạo và khả năng tuyển dụng, giữ chân nhân tài.","s":"Lecture 2 · Slide 38"},
+{"d":2,"t":"mc","q":"Khi viết business plan từ VEM, Executive Summary thể hiện nội dung gì?","o":["Tóm tắt các ô, hàng và cột của VEM","Chỉ riêng các dự phóng tài chính ba năm","Kế hoạch thoái vốn bằng cách niêm yết","Danh sách điều khoản trong bản term sheet"],"a":0,"e":"Executive Summary tóm tắt các ô, hàng, cột của VEM; các mục còn lại tương ứng từng ô cụ thể.","s":"Lecture 2 · Slide 40"},
+{"d":3,"t":"mc","q":"VEM Spreadsheet Tool giúp nhà đầu tư làm gì ở bước sàng lọc ban đầu?","o":["Chấm điểm từng ô VEM để ưu tiên dự án đáng xem xét tiếp","Tự động định giá doanh nghiệp bằng phương pháp DCF","Soạn sẵn term sheet và hợp đồng đầu tư cho vòng gọi vốn","Dự báo doanh thu của venture theo cách tiếp cận top-down"],"a":0,"e":"Nhà đầu tư gán điểm cho mỗi ô VEM để nhanh chóng loại bỏ dự án không đáng thời gian và ưu tiên dự án triển vọng.","s":"Lecture 2 · Slide 41"},
+{"d":3,"t":"mc","q":"Trong due diligence, hoạt động nào gắn với cột Entrepreneur (Team, Network, Organization)?","o":["Đánh giá công nghệ, phân tích đối thủ và thăm cơ sở sản xuất","Nghiên cứu thị trường sơ cấp, thứ cấp và theo dõi tỷ lệ chấp nhận","Rà soát hợp đồng pháp lý của các cổ đông ở các vòng trước","Gặp nhóm sáng lập, tiếp xúc mạng lưới và quan sát các buổi thảo luận"],"a":3,"e":"Customer/Market: nghiên cứu thị trường; Company: công nghệ, đối thủ, thăm cơ sở; Entrepreneur: gặp team, mạng lưới, quan sát thảo luận.","s":"Lecture 2 · Slide 42"},
+{"d":2,"t":"tf","q":"Đúng hay Sai: VEM trả lời mọi câu hỏi của nhà đầu tư, kể cả định giá và cấu trúc deal.","a":1,"e":"Sai. VEM dẫn dắt quyết định nhưng không giải quyết hết; nhà đầu tư còn xét sức hấp dẫn tài chính của deal (định giá, cấu trúc, thời điểm, mức tương thích).","s":"Lecture 2 · Slide 42"},
+{"d":4,"t":"mc","sc":1,"b":1,"q":"FINAL CHALLENGE: Nhà đầu tư thấy ngành lớn và tăng nhanh, nhưng đối thủ dễ sao chép: không có IP, công nghệ độc quyền hay quy trình sản xuất khác biệt. Lợi thế cạnh tranh nào đang yếu?","o":["Customer access, thuộc cột Customer (Need, Market, Sales)","Entry barriers, thuộc cột Company (Solution, Competition, Production)","Competencies, thuộc cột Entrepreneur (Team, Network, Organization)","Không lợi thế nào yếu vì ngành vừa lớn vừa tăng trưởng nhanh"],"a":1,"e":"Entry barriers đến từ cột Company: IP, công nghệ độc quyền, quy mô, quy trình sản xuất phức tạp.","s":"Lecture 2 · Slide 37"}]},
+{"title":"The Financial Plan","qs":[
+{"d":1,"t":"mc","q":"Hai cách tiếp cận chính để ước tính doanh thu là gì?","o":["Pro forma và Actual","Cost-plus và Value-based","CapEx và OpEx","Top-down và Bottom-up"],"a":3,"e":"Top-down xuất phát từ phân tích thị trường; Bottom-up xuất phát từ năng lực vận hành và các động lực doanh thu.","s":"Lecture 3 · Slide 14"},
+{"d":1,"t":"mc","q":"Phương trình cơ bản của Balance Sheet là gì?","o":["Assets = Liabilities + Equity","Equity = Assets + Liabilities","Assets = Revenue − COGS","Liabilities = Assets + Equity"],"a":0,"e":"Balance Sheet là ảnh chụp tình hình tài chính tại một thời điểm và luôn cân bằng theo Assets = Liabilities + Equity.","s":"Lecture 3 · Slide 29"},
+{"d":2,"t":"mc","q":"Theo bài giảng, thời điểm thích hợp để bắt đầu gọi vốn là khi nào?","o":["Ngay tại thời điểm hoàn tất bản mô tả ý tưởng kinh doanh","Ngay khi số dư tiền mặt của công ty về đến mức bằng 0","Khoảng 1 năm trước khi nhu cầu vốn đầu tiên xuất hiện","Sau khi công ty đạt điểm hòa vốn đầu tiên trong hoạt động"],"a":2,"e":"Gọi vốn cần thời gian, nên phải bắt đầu trước khi cạn tiền để không rơi vào khủng hoảng.","s":"Lecture 3 · Slide 39"},
+{"d":3,"t":"mc","sc":1,"q":"Shop thương mại điện tử dự báo bottom-up: 10.000 lượt truy cập/tháng, tỷ lệ chuyển đổi 2%, giá trị đơn hàng trung bình 50 USD. Doanh thu tháng dự báo?","o":["1.000 USD","100.000 USD","10.000 USD","5.000 USD"],"a":2,"e":"Doanh thu = Visitors × Conversion Rate × AOV = 10.000 × 2% × 50 = 10.000 USD.","s":"Lecture 3 · Slide 17"},
+{"d":1,"t":"tf","q":"Đúng hay Sai: 'Pro forma' có nghĩa là số liệu dự báo hoặc dự phóng.","a":0,"e":"Đúng. Pro forma là các báo cáo dự phóng, tức là ước tính tốt nhất về kết quả và vị thế tài chính tương lai.","s":"Lecture 3 · Slide 29"},
+{"d":1,"t":"mc","q":"Công thức tính lợi nhuận trong Income Statement theo bài giảng?","o":["Beginning Cash + Cash In − Cash Out = Ending Cash","Assets = Liabilities + Equity","Revenue − COGS − Operating Expenses = Net Income","CFO + CFI + CFF = Net Change in Cash"],"a":2,"e":"Income Statement cho thấy khả năng sinh lời trong một kỳ; các công thức còn lại thuộc Cash Flow và Balance Sheet.","s":"Lecture 3 · Slide 29"},
+{"d":2,"t":"mc","q":"Milestone được định nghĩa đúng nhất là gì?","o":["Chỉ tiêu doanh thu cố định được lặp lại vào cuối mỗi quý tài chính","Báo cáo kiểm toán được lập cuối năm để gửi cho cơ quan thuế","Thành tựu đo lường được, giảm rủi ro và mở khóa giai đoạn chi tiêu kế tiếp","Ngày đáo hạn của khoản vay đầu tiên mà công ty ký với ngân hàng"],"a":2,"e":"Milestone là sự kiện nổi bật, đo lường được, thể hiện tiến bộ và gắn với mục tiêu gọi vốn.","s":"Lecture 3 · Slide 10"},
+{"d":2,"t":"mc","q":"Khi nào phương pháp top-down kém thuyết phục?","o":["Khi thị trường mục tiêu quá lớn hoặc chưa tồn tại","Khi công ty đã có dữ liệu bán hàng lịch sử đầy đủ và đáng tin","Khi thị phần mục tiêu đã được xác định và ước lượng tốt từ trước","Khi chi phí biến đổi của công ty thấp hơn chi phí cố định"],"a":0,"e":"Ví dụ 'nhà hàng ở New York' (quá lớn) hoặc 'chuyến bay vũ trụ' (thị trường chưa có).","s":"Lecture 3 · Slide 16"},
+{"d":3,"t":"mc","sc":1,"q":"SaaS dự kiến 200 người đăng ký mới mỗi tháng, phí 9,99 USD/tháng. Doanh thu của nhóm mới trong tháng xấp xỉ?","o":["199,8 USD","19.980 USD","23.976 USD","1.998 USD"],"a":3,"e":"SaaS: New Subscribers × Subscription Price = 200 × 9,99 ≈ 1.998 USD.","s":"Lecture 3 · Slide 17"},
+{"d":3,"t":"mc","sc":1,"q":"Công ty B2B có 4 sales rep, mỗi người chốt 6 deal mỗi quý, giá trị deal trung bình 25.000 USD. Doanh thu theo quý?","o":["600.000 USD","150.000 USD","100.000 USD","2.400.000 USD"],"a":0,"e":"B2B: (# Sales Reps) × (# deals/rep) × (Avg. Deal Size) = 4 × 6 × 25.000 = 600.000 USD.","s":"Lecture 3 · Slide 17"},
+{"d":2,"t":"mc","q":"Spotify chọn một mức phí cố định 9,99 USD/tháng cho truy cập không giới hạn. Đây là chiến lược định giá nào?","o":["Value-based pricing","Competitor-based pricing","Định giá theo chi phí biên","Cost-plus pricing"],"a":0,"e":"Giá dựa trên giá trị cảm nhận của khách hàng ('all the music in the world'); khó nhất nhưng lợi nhuận cao nhất.","s":"Lecture 3 · Slide 19"},
+{"d":3,"t":"mc","q":"Khoản chi nào được xếp vào startup cost (CapEx) thay vì operating cost (OpEx)?","o":["Mua xe bán hàng và laptop cho đội ngũ ban đầu","Lương cố định của nhân viên kinh doanh","Tiền thuê văn phòng được trả hằng tháng","Ngân sách quảng cáo trên mạng xã hội hằng tháng"],"a":0,"e":"CapEx là chi phí một lần để khởi động, được vốn hóa và khấu hao; OpEx là chi phí lặp lại ghi nhận trên Income Statement.","s":"Lecture 3 · Slide 23, 32"},
+{"d":3,"t":"mc","q":"Cash Flow from Operations được tính bắt đầu từ đâu?","o":["Bắt đầu từ tổng tài sản, trừ nợ phải trả và vốn chủ sở hữu","Bắt đầu từ EBITDA, trừ toàn bộ nợ dài hạn sắp đến hạn thanh toán","Bắt đầu từ Net Income, cộng chi phí phi tiền mặt, điều chỉnh vốn lưu động","Bắt đầu từ Revenue, trừ CapEx và cộng tiền huy động vốn cổ phần của kỳ"],"a":2,"e":"CFO: Net Income + khấu hao (phi tiền mặt) ± thay đổi vốn lưu động.","s":"Lecture 3 · Slide 32"},
+{"d":3,"t":"mc","sc":1,"q":"CFO = −300, CFI = −150, CFF = +700, tiền đầu kỳ 100 (nghìn USD). Tiền cuối kỳ?","o":["250","−350","350","1.250"],"a":2,"e":"Net change = −300 − 150 + 700 = 250; Ending = 100 + 250 = 350.","s":"Lecture 3 · Slide 32"},
+{"d":3,"t":"mc","q":"Tài sản ngắn hạn CA = 500, nợ ngắn hạn CL = 320. Net Working Capital là bao nhiêu?","o":["−180","320","180","820"],"a":2,"e":"NWC = CA − CL = 500 − 320 = 180.","s":"Lecture 3 · Slide 34"},
+{"d":2,"t":"mc","q":"Theo hướng dẫn xây mô hình, báo cáo nào được lập cuối cùng để làm 'check figure'?","o":["Balance Sheet","Statement of Cash Flows","Tab giả định (Assumptions)","Income Statement"],"a":0,"e":"Balance Sheet lập sau cùng: nếu Assets = Liabilities + Equity thì mô hình cân bằng và nhiều khả năng đúng.","s":"Lecture 3 · Slide 35"},
+{"d":2,"t":"mc","q":"Sunk cost fallacy khiến nhà đầu tư hành xử thế nào?","o":["Định giá quá thấp những công ty mới thành lập chưa có lịch sử","Từ chối mọi venture có dự báo tăng trưởng nhanh về doanh thu","Chỉ đầu tư vào những venture do người quen giới thiệu trực tiếp","Tiếp tục rót vốn vào venture đang yếu chỉ vì đã đầu tư trước đó"],"a":3,"e":"Kahneman: sunk cost fallacy khiến nhà đầu tư tiếp tục rót tiền vào venture ốm yếu chỉ vì đã bỏ tiền.","s":"Lecture 3 · Slide 43"},
+{"d":2,"t":"mc","q":"Phần 'Use of Funds' trong pitch nên trình bày thế nào?","o":["Biểu đồ tròn cho thấy tiền sẽ được chi vào các hạng mục nào","Danh sách chi tiết các khoản lương đã trả cho nhà sáng lập","Dự báo giá cổ phiếu của công ty sau khi niêm yết","Bảng so sánh lãi suất tiền gửi giữa các ngân hàng thương mại"],"a":0,"e":"Ví dụ: 40% Product Dev, 40% Sales & Marketing, 20% G&A.","s":"Lecture 3 · Slide 42"},
+{"d":1,"t":"tf","q":"Đúng hay Sai: Dự báo tài chính của venture thường quá bi quan và hiếm khi bị lỗi thời.","a":1,"e":"Sai. Dự báo luôn không chính xác, nhanh lỗi thời và luôn lạc quan.","s":"Lecture 3 · Slide 7"},
+{"d":4,"t":"mc","sc":1,"b":1,"q":"FINAL CHALLENGE: Báo cáo lưu chuyển tiền tệ dự phóng (giả định không huy động thêm vốn) cho thấy số dư tiền thấp nhất là −1,2 triệu USD ở năm thứ 3. Founder nên hiểu thế nào?","o":["Chỉ cần vay bạn bè và gia đình 1,2 triệu USD là đủ giải quyết","Tổng nhu cầu vốn xấp xỉ 1,2 triệu USD, nên gọi vốn sớm 1 năm trước","Công ty chắc chắn sẽ phá sản vào năm thứ ba của giai đoạn dự báo","Cần gọi 1,2 triệu USD mỗi năm trong ba năm liên tiếp nhau"],"a":1,"e":"Điểm âm thấp nhất của số dư tiền chính là tổng nhu cầu vốn; nên gọi vốn trước khoảng 1 năm so với lúc nhu cầu xuất hiện.","s":"Lecture 3 · Slide 39"}]},
+{"title":"Valuation Methods","qs":[
+{"d":1,"t":"mc","q":"Pre-money valuation là gì?","o":["Định giá công ty trước khi nhận khoản đầu tư","Định giá công ty ngay sau khi nhận khoản đầu tư","Số tiền mà nhà đầu tư mới cam kết rót vào công ty","Giá trị công ty tại thời điểm niêm yết lần đầu"],"a":0,"e":"Pre-money là định giá trước đầu tư, post-money là sau đầu tư (post = pre + I).","s":"Lecture 4 · Slide 8"},
+{"d":2,"t":"tf","q":"Đúng hay Sai: Ở vòng đầu, số cổ phiếu ban đầu chỉ là hệ số quy mô (scaling factor): nó đổi giá mỗi cổ phiếu nhưng không đổi tỷ lệ sở hữu cuối cùng.","a":0,"e":"Đúng. Tỷ lệ sở hữu do số tiền đầu tư và định giá quyết định, không do số cổ phiếu.","s":"Lecture 4 · Slide 12"},
+{"d":3,"t":"mc","q":"Nhà đầu tư rót 2 triệu USD để nhận 25% công ty. Post-money và pre-money valuation là?","o":["Post 8 triệu; Pre 6 triệu","Post 6 triệu; Pre 8 triệu","Post 8 triệu; Pre 10 triệu","Post 2 triệu; Pre 6 triệu"],"a":0,"e":"V_POST = I / F_INV = 2 / 25% = 8 triệu; V_PRE = V_POST − I = 6 triệu.","s":"Lecture 4 · Slide 10-11"},
+{"d":3,"t":"mc","sc":1,"q":"VitaPitch có FCF (nghìn USD) năm 1-4 lần lượt: −500; 0; 800; 1.200, tỷ suất yêu cầu 22%. Cần đầu tư 700K. Kết luận theo DCF?","o":["DCF ≈ 700K nên chỉ vừa đủ để hòa vốn","DCF ≈ 1.500K nên rất đáng đầu tư ngay","DCF ≈ 572K > 700K nên hoàn toàn đáng đầu tư","DCF ≈ 572K < 700K nên chưa đáng đầu tư"],"a":3,"e":"−500/1,22 + 800/1,22³ + 1.200/1,22⁴ ≈ −409,8 + 440,6 + 541,7 ≈ 572K < 700K.","s":"Lecture 4 · Slide 45"},
+{"d":1,"t":"mc","q":"Định giá (valuation) quyết định điều gì?","o":["Số lượng nhân viên cần tuyển trong vòng gọi vốn kế tiếp","Mức lãi suất ngân hàng áp dụng cho khoản vay của công ty","Thời điểm công ty đủ điều kiện để niêm yết trên sàn","Tỷ lệ vốn chủ sở hữu nhà đầu tư nhận và kỳ vọng lợi suất của họ"],"a":3,"e":"Valuation xác định % vốn chủ sở hữu mà nhà đầu tư nhận và cho phép ước tính lợi suất kỳ vọng.","s":"Lecture 4 · Slide 7"},
+{"d":1,"t":"tf","q":"Đúng hay Sai: Giá trị phần sở hữu của nhà đầu tư ở công ty chưa niêm yết chỉ là 'paper money' vì chưa có thị trường cho cổ phiếu.","a":0,"e":"Đúng. Giá trị này mang tính giả định cho đến khi có thị trường hoặc sự kiện thoái vốn.","s":"Lecture 4 · Slide 6"},
+{"d":2,"t":"mc","q":"Công thức nào đúng cho post-money valuation?","o":["V_POST = V_PRE × F_INV","V_POST = V_PRE + I","V_POST = V_PRE ÷ I","V_POST = V_PRE − I"],"a":1,"e":"Post-money là định giá sau khi nhận đầu tư nên bằng pre-money cộng khoản đầu tư.","s":"Lecture 4 · Slide 8, 10"},
+{"d":3,"t":"mc","sc":1,"q":"Founder sở hữu 100% công ty có pre-money 3 triệu USD. Nhà đầu tư rót 1 triệu USD. Sau vòng này, tỷ lệ của nhà đầu tư và founder?","o":["20% và 80%","30% và 70%","33,3% và 66,7%","25% và 75%"],"a":3,"e":"V_POST = 3 + 1 = 4 triệu; F_INV = 1/4 = 25%; F_PRE = 75%.","s":"Lecture 4 · Slide 10, 17"},
+{"d":4,"t":"mc","sc":1,"q":"Vòng 1: nhà đầu tư A sở hữu 20%. Vòng 2: nhà đầu tư mới nhận 25% công ty sau vòng. Nếu A không mua thêm, A còn bao nhiêu sau vòng 2?","o":["20%","5%","17,5%","15%"],"a":3,"e":"Pha loãng: F1(2) = 20% × (1 − 25%) = 15%.","s":"Lecture 4 · Slide 18-20"},
+{"d":3,"t":"mc","q":"Chọn ít cổ phiếu ban đầu để giá mỗi cổ phiếu cao có làm tăng tỷ lệ sở hữu của founder không?","o":["Có, vì pre-money tăng tỷ lệ thuận với giá mỗi cổ phiếu được định ra","Chỉ có khi nhà đầu tư là một quỹ VC chuyên nghiệp trong ngành","Có, vì giá cao nên nhà đầu tư mua ít cổ phiếu hơn và founder giữ nhiều hơn","Không, vì số cổ phiếu chỉ là hệ số quy mô, tỷ lệ do I và định giá quyết định"],"a":3,"e":"Số cổ phiếu là numéraire: đổi giá mỗi cổ phiếu nhưng không đổi tỷ lệ sở hữu cuối cùng của các bên.","s":"Lecture 4 · Slide 12-14"},
+{"d":2,"t":"mc","q":"Bốn đầu vào cần ước tính trong Venture Capital Method?","o":["V_PRE, V_POST, S_PRE, S_INV (định giá và số cổ phiếu hai bên)","I, FCF, g, WACC (đầu tư, dòng tiền, tăng trưởng, chi phí vốn bình quân)","CCM, z, r, R (bội số tiền, tỷ lệ thất bại, vòng hiện tại, vòng thoái vốn)","I, T, Xe, ρ (đầu tư, thời gian thoái vốn, giá trị thoái vốn, tỷ suất yêu cầu)"],"a":3,"e":"VCM cần: Investment amount I, Time-to-exit T, Exit value Xe, Hurdle rate ρ.","s":"Lecture 4 · Slide 29"},
+{"d":3,"t":"mc","q":"Ở Mỹ, thời gian trung bình từ vòng tài trợ đầu tiên đến IPO là bao lâu?","o":["6,3 năm","10,5 năm","3,2 năm","5,6 năm"],"a":0,"e":"Trung bình tới IPO là 6,3 năm; tới khi bị mua lại là 5,6 năm (Instagram 16 tháng, YouTube 18 tháng).","s":"Lecture 4 · Slide 32"},
+{"d":3,"t":"mc","q":"Vì sao VC dùng tỷ suất yêu cầu (hurdle rate) rất cao khi định giá startup?","o":["Bù cho tỷ lệ thất bại cao, tỷ suất điều chỉnh theo xác suất thành công","Vì VC phải trả lãi suất rất cao cho LPs hằng năm theo hợp đồng quỹ","Vì startup thường có dòng tiền dương ổn định ngay từ những năm đầu hoạt động","Vì thuế đánh trên lợi nhuận của VC cao hơn so với doanh nghiệp thông thường"],"a":0,"e":"VC đối mặt tỷ lệ thất bại cao nên discount rate được điều chỉnh theo xác suất thành công/thất bại (z).","s":"Lecture 4 · Slide 34-38"},
+{"d":4,"t":"mc","sc":1,"q":"VC dùng CCM thay cho ρ, biết CCM = (1+ρ)^T. Với ρ = 50%/năm, T = 2 năm, CCM là?","o":["3,00x","1,50x","2,25x","1,25x"],"a":2,"e":"CCM = (1 + 50%)² = 2,25.","s":"Lecture 4 · Slide 39"},
+{"d":3,"t":"mc","q":"Khi nào DCF phù hợp hơn với một venture?","o":["Ở giai đoạn muộn, khi đã có thông tin lịch sử về công ty","Khi công ty chưa tạo ra bất kỳ dòng tiền nào để dự báo","Ở giai đoạn ý tưởng, khi chưa có doanh thu hay khách hàng","Khi nhà đầu tư chỉ có thông tin về các đối thủ cạnh tranh"],"a":0,"e":"DCF khó áp dụng với venture vì bất định, trừ giai đoạn sau khi có thông tin lịch sử.","s":"Lecture 4 · Slide 42"},
+{"d":3,"t":"mc","q":"Exit Comparables khác Investment Comparables ở điểm nào?","o":["Chỉ dùng mô hình chiết khấu dòng tiền cho từng công ty mẫu","Nhìn cách thị trường định giá các công ty trưởng thành tương đương","So sánh với các deal đầu tư tư nhân tương tự đã được thực hiện","Không cần chọn chỉ số so sánh hay tập công ty tham chiếu"],"a":1,"e":"Exit Comparables: tham chiếu thị trường công khai; Investment Comparables: các deal tư nhân. Cần chọn tập công ty và chỉ số.","s":"Lecture 4 · Slide 49-50, 55"},
+{"d":4,"t":"mc","q":"Ba lưu ý (caveats) khi dùng multiples?","o":["Dùng multiple doanh thu cho mọi ngành, bỏ qua rủi ro, tránh so sánh chéo","Chỉ so sánh với công ty cùng quốc gia, cùng quy mô, cùng năm thành lập","Đo nhất quán, xem cả phân phối chứ không chỉ trung bình, coi chừng hiệu ứng bầy đàn","Chọn multiple cao nhất, loại bỏ công ty đang lỗ, lấy trung bình đơn giản"],"a":2,"e":"Multiples phải đo nhất quán, xét toàn bộ phân phối và thừa nhận chúng phản ánh định giá thị trường nên dễ chịu herding.","s":"Lecture 4 · Slide 54"},
+{"d":3,"t":"mc","q":"Multiple dựa trên doanh thu hữu ích trong trường hợp nào?","o":["Khi muốn tính chính xác giá trị tài sản ròng hiện tại","Khi công ty có dòng tiền âm nhưng vẫn có doanh thu","Khi lợi nhuận ổn định và luôn dương qua nhiều năm","Khi công ty chưa có bất kỳ khoản doanh thu nào"],"a":1,"e":"Earnings có thể âm hoặc biến động; revenues dùng được cả khi dòng tiền âm.","s":"Lecture 4 · Slide 53"},
+{"d":4,"t":"mc","sc":1,"b":1,"q":"FINAL CHALLENGE: Theo Venture Capital Method, VC kỳ vọng exit value 30 triệu USD sau 5 năm, hurdle rate 40%/năm, và rót 1,5 triệu USD. Tỷ lệ sở hữu VC cần nhận xấp xỉ?","o":["50,0%","5,0%","20,0%","26,9%"],"a":3,"e":"V_POST = Xe/(1+ρ)^T = 30/1,4⁵ ≈ 5,58 triệu. F_INV = I/V_POST = 1,5/5,58 ≈ 26,9%.","s":"Lecture 4 · Slide 27, 29, 39"}]},
+{"title":"Sources of Financing","qs":[
+{"d":1,"t":"mc","q":"Bootstrapping là gì?","o":["Niêm yết cổ phiếu trên sàn chứng khoán để huy động vốn từ công chúng","Xây dựng doanh nghiệp từ nguồn lực của chủ sở hữu, rất ít vốn ngoài","Bán cổ phần cho quỹ VC để lấy vốn trong vòng gọi vốn Series A","Vay một khoản lớn từ ngân hàng để tăng tốc mở rộng quy mô sản xuất"],"a":1,"e":"Chủ doanh nghiệp dùng nguồn lực của mình, không chia sẻ cổ phần hay vay khoản lớn.","s":"Lecture 5 · Slide 10"},
+{"d":1,"t":"mc","q":"Vì sao ngân hàng thương mại thường ngại cho startup giai đoạn đầu vay?","o":["Ngân hàng chỉ được cho vay các công ty đã niêm yết trên sàn","Chưa có mô hình ổn định, ít tài sản thế chấp, dòng tiền bất ổn","Startup luôn chỉ muốn huy động vốn cổ phần và không muốn vay","Startup thường có lịch sử hoạt động dài nhưng doanh thu giảm liên tục"],"a":1,"e":"Startup thiếu lịch sử hoạt động, hiếm tài sản thế chấp, dòng tiền không ổn định và rủi ro vỡ nợ cao.","s":"Lecture 5 · Slide 20"},
+{"d":2,"t":"mc","q":"Limited Partners (LPs) trong hệ sinh thái VC là ai?","o":["Nhà đầu tư tổ chức cấp vốn cho quỹ, không tham gia quản lý","Các nhà quản lý quỹ đưa ra quyết định đầu tư vào các startup","Những công ty khởi nghiệp đang nằm trong danh mục đầu tư của quỹ","Các founder cần vốn và chuyên môn để mở rộng quy mô doanh nghiệp"],"a":0,"e":"LPs (quỹ hưu trí, quỹ đại học, bảo hiểm...) là nguồn vốn thật sự nhưng không có tiếng nói trong quản lý; GPs mới quản lý quỹ.","s":"Lecture 5 · Slide 25"},
+{"d":3,"t":"mc","sc":1,"q":"Quỹ VC huy động 100 triệu USD vốn cam kết từ LPs. Phí quản lý thường 2%/năm. Mỗi năm LPs trả phí quản lý khoảng bao nhiêu?","o":["0,2 triệu USD","2 triệu USD","5 triệu USD","20 triệu USD"],"a":1,"e":"Management fee thường 2% vốn cam kết mỗi năm: 100 triệu × 2% = 2 triệu USD.","s":"Lecture 5 · Slide 27"},
+{"d":1,"t":"mc","q":"Ba giai đoạn của bootstrapping theo đúng thứ tự?","o":["Customer-funded → Beginner → Credit","Beginner → Customer-funded → Credit","Beginner → Credit → Customer-funded","Credit → Beginner → Customer-funded"],"a":1,"e":"Beginner (tiền tiết kiệm, bạn bè), Customer-funded (tiền từ khách hàng), Credit (vay hoặc tìm VC để mở rộng).","s":"Lecture 5 · Slide 11"},
+{"d":2,"t":"mc","q":"Vì sao bạn bè và gia đình đầu tư vào startup?","o":["Họ muốn nhận cổ tức đều đặn mỗi năm từ doanh thu công ty","Họ muốn được chia quyền quản trị trong ban điều hành công ty","Họ biết, tin và muốn ủng hộ bạn, không phải vì ý tưởng xuất sắc","Họ thấy mô hình kinh doanh có triển vọng sinh lời vượt trội"],"a":2,"e":"Friends & family đầu tư vào con người: vì họ thích, tin và biết bạn, dù ý tưởng đôi khi chưa hợp lý với họ.","s":"Lecture 5 · Slide 14"},
+{"d":2,"t":"mc","q":"Nhóm doanh nghiệp nào ngân hàng sẵn sàng cho vay nhất?","o":["Công ty ở giai đoạn Development đang xây dựng bản mẫu của sản phẩm","Công ty có mô hình kinh doanh liên tục thay đổi theo phản hồi thị trường","Dòng tiền dự đoán được, thu nhập ổn định, có tài sản thanh khoản","Startup công nghệ chưa có doanh thu nhưng đang tăng trưởng rất nhanh"],"a":2,"e":"Ngân hàng cho vay doanh nghiệp có dòng tiền dự đoán được và tài sản thanh khoản, thường là SME.","s":"Lecture 5 · Slide 19"},
+{"d":2,"t":"mc","q":"Factoring và discounting là gì?","o":["Thuê thiết bị hoặc tài sản cố định từ công ty cho thuê dành riêng cho startup","Vay có khoản phải thu làm tài sản đảm bảo, hoặc bán khoản phải thu với giá thấp hơn","Khoản vay dành cho startup đã phát triển hơn và không có sẵn ở giai đoạn seed","Mua hàng từ nhà cung cấp trước và thanh toán sau theo điều khoản đã thỏa thuận"],"a":1,"e":"Discounting & Factoring dùng receivables để vay hoặc bán lấy tiền sớm. Các lựa chọn còn lại là venture leasing, trade credit, venture debt.","s":"Lecture 5 · Slide 21"},
+{"d":2,"t":"mc","q":"Venture debt phù hợp nhất khi nào?","o":["Khi founder muốn tránh hoàn toàn nghĩa vụ hoàn trả nợ vay của mình","Khi công ty chưa có bất kỳ khách hàng hay doanh thu thực tế nào","Khi công ty chỉ mới có ý tưởng ở giai đoạn seed ban đầu của mình","Khi công ty đã lớn hơn và mô hình kinh doanh được chứng minh"],"a":3,"e":"Venture debt dành cho startup đã phát triển hơn, không có ở giai đoạn seed; phù hợp ở Rapid-Growth khi mô hình đã được chứng minh.","s":"Lecture 5 · Slide 21, 44"},
+{"d":2,"t":"mc","q":"Điểm nào đúng về khoản đầu tư của VC?","o":["Không đòi hỏi quyền sở hữu và không tham gia hỗ trợ chiến lược","Là khoản vay có lãi suất cố định và lịch hoàn trả theo định kỳ","Kém thanh khoản, thường bị khóa 5-10 năm đến khi có thoái vốn","Có thể bán lại nhanh chóng trên thị trường thứ cấp công khai"],"a":2,"e":"VC: high risk/high reward, equity stake, active involvement, illiquid (5-10 năm đến liquidity event).","s":"Lecture 5 · Slide 24"},
+{"d":3,"t":"mc","sc":1,"q":"Quỹ VC có vòng đời khoảng 10 năm, giai đoạn đầu tư 4-5 năm. Giai đoạn còn lại dùng để làm gì?","o":["Thu hoạch 5-7 năm: hỗ trợ danh mục phát triển và tìm đường thoái vốn","Gọi thêm vốn từ LPs để đầu tư vào các startup hoàn toàn mới","Chuyển quỹ thành công ty niêm yết để bán cổ phần cho công chúng","Giải thể quỹ và trả toàn bộ vốn cho LPs ngay lập tức"],"a":0,"e":"Harvesting Period: giúp portfolio companies tăng trưởng và tìm exit để hoàn vốn (kèm lợi nhuận) cho LPs.","s":"Lecture 5 · Slide 27"},
+{"d":3,"t":"mc","sc":1,"q":"Quỹ VC 100 triệu USD hoàn lại vốn gốc cho LPs, còn lãi 60 triệu USD. Carried interest 20%, GP nhận bao nhiêu?","o":["20 triệu USD","6 triệu USD","12 triệu USD","32 triệu USD"],"a":2,"e":"Sau khi trả lại vốn gốc, GP giữ 20% phần lãi còn lại: 60 × 20% = 12 triệu USD.","s":"Lecture 5 · Slide 27"},
+{"d":2,"t":"mc","q":"So sánh angel investor với VC, điểm nào đúng?","o":["Angel thường rót vòng 1-3 triệu USD, lớn hơn các vòng thông thường của VC","Angel quản lý vốn của LPs và nhận phí quản lý khoảng 2% mỗi năm theo quỹ","Angel chỉ đầu tư vào những doanh nghiệp đã sẵn sàng niêm yết trên sàn","Angel dùng tiền cá nhân, vòng nhỏ hơn, thiên về giai đoạn seed/startup"],"a":3,"e":"Angel dùng tiền của mình; vòng thường nhỏ hơn (< 500K so với 1-3 triệu USD của VC).","s":"Lecture 5 · Slide 30, 32"},
+{"d":3,"t":"mc","q":"Số liệu 54% (angel) so với 20% (VC) trong bài giảng nói lên điều gì?","o":["Tỷ lệ sở hữu trung bình mà angel nắm so với VC","Phần vốn dành cho giai đoạn seed/startup: angel cao hơn VC","Tỷ trọng vốn của angel đến từ LPs so với vốn của VC","Tỷ lệ startup thất bại sau vòng đầu của angel so với VC"],"a":1,"e":"54% vốn từ angel đi vào ventures giai đoạn sớm so với khoảng 20% của VC.","s":"Lecture 5 · Slide 32"},
+{"d":2,"t":"mc","q":"Mô hình crowdfunding nào cho nhà đầu tư nhận cổ phần của công ty?","o":["Donation-based","Equity-based","Rewards-based","Lending-based (P2P)"],"a":1,"e":"Equity-based: nhà đầu tư nhận cổ phần; lending-based: cho vay nhận lãi; rewards: nhận phần thưởng phi tài chính; donation: không kỳ vọng lợi ích tài chính.","s":"Lecture 5 · Slide 36"},
+{"d":2,"t":"mc","q":"Accelerators và incubators thường cung cấp gì?","o":["Cố vấn, nguồn lực, văn phòng, mạng lưới, thường đổi lấy cổ phần nhỏ","Khoản vay không lãi suất kéo dài mười năm và có tài sản đảm bảo","Dịch vụ niêm yết và bảo lãnh phát hành cổ phiếu ra công chúng","Quyền kiểm soát đa số để tái cấu trúc ban quản lý công ty"],"a":0,"e":"Chương trình hỗ trợ công ty giai đoạn đầu với mentorship, nguồn lực, văn phòng, networking, thường đổi lấy cổ phần nhỏ.","s":"Lecture 5 · Slide 37"},
+{"d":2,"t":"tf","q":"Đúng hay Sai: Limited Partners có quyền tham gia quản lý danh mục đầu tư hằng ngày của quỹ VC.","a":1,"e":"Sai. LPs là nguồn vốn thật sự nhưng không có tiếng nói trong quản lý; GPs quản lý quỹ và ra quyết định đầu tư.","s":"Lecture 5 · Slide 25"},
+{"d":3,"t":"mc","sc":1,"q":"Một công ty ở Survival đang đốt tiền nhanh và cần vượt 'Valley of Death' để đạt dòng tiền dương. Điểm vào kinh điển của VC thể chế là vòng nào?","o":["Seed bootstrapping bằng tiền tiết kiệm cá nhân","Seasoned offering ra công chúng","Liquidity-stage financing qua ngân hàng đầu tư","Series A (vòng tài trợ đầu tiên)"],"a":3,"e":"First Round (Series A) ở Survival Stage: VC là điểm vào kinh điển, cùng trade credit và chương trình chính phủ.","s":"Lecture 5 · Slide 43"},
+{"d":4,"t":"mc","sc":1,"b":1,"q":"FINAL CHALLENGE: Công ty đang ở Rapid-Growth, cần vốn lưu động lớn cho hàng tồn kho và khoản phải thu, đồng thời muốn tạo thanh khoản cho nhà đầu tư cũ. Nguồn vốn phù hợp theo vòng đời?","o":["Chỉ bootstrapping và khoản vay từ bạn bè, gia đình","VC vòng 2 (Series B, C), mezzanine và venture debt","Crowdfunding dạng donation và rewards cho sản phẩm mới","Vay thế chấp ngân hàng như đối với một cửa hàng nhỏ"],"a":1,"e":"Giai đoạn Rapid-Growth cần vòng gọi vốn lớn: VC vòng sau, mezzanine, venture debt và liquidity-stage financing.","s":"Lecture 5 · Slide 44"}]},
+{"title":"Exit","qs":[
+{"d":1,"t":"mc","q":"Bài giảng nêu ba hình thức exit thành công và một exit thất bại. Đó là gì?","o":["Acquisition, angel, VC; thất bại là pha loãng cổ phần","IPO, bootstrapping, crowdfunding; thất bại là pivot chiến lược","IPO, acquisition, financial sale; thất bại là closing down","MBO, MBI, LBO; thất bại là niêm yết trên sàn"],"a":2,"e":"Ba exit thành công: IPO, bán cho nhà mua chiến lược (acquisition), bán cho nhà đầu tư tài chính. Thất bại: đóng cửa.","s":"Lecture 6 · Slide 11"},
+{"d":1,"t":"tf","q":"Đúng hay Sai: Các trường hợp đóng cửa (closing down) chiếm ít nhất 50% các exit.","a":0,"e":"Đúng, bài giảng nêu closures represent at least 50% of exits.","s":"Lecture 6 · Slide 11"},
+{"d":2,"t":"mc","q":"Thỏa thuận lock-up trong IPO nhằm mục đích gì?","o":["Ngăn công ty niêm yết ở thị trường nước ngoài","Giúp công ty mua lại cổ phiếu của chính mình","Đảm bảo người trong cuộc không bán tháo cổ phiếu","Quy định mức giá chào bán tại thời điểm IPO"],"a":2,"e":"Lock-up giữ cổ phiếu của insiders trong một thời gian; greenshoe là quyền chọn phân bổ vượt mức để ổn định giá.","s":"Lecture 6 · Slide 25"},
+{"d":3,"t":"mc","sc":1,"q":"Một công ty công nghệ lớn mua lại startup 8 người, chủ yếu để có đội kỹ sư tài năng; thương hiệu startup có thể biến mất. Động cơ chính của bên mua?","o":["Market access: vào khu vực địa lý hoặc nhóm khách mới","Talent: sở hữu cả đội ngũ kỹ sư và nhà thiết kế","Technology: sở hữu sản phẩm hoặc R&D độc đáo","Data or IP: nắm giữ bộ dữ liệu hoặc bằng sáng chế"],"a":1,"e":"Acquirer có thể muốn Technology, Talent, Market access/loại đối thủ, hoặc Data/IP. Ở đây tài sản chính là con người.","s":"Lecture 6 · Slide 28"},
+{"d":1,"t":"mc","q":"Exit strategy được thực hiện trong tình huống nào?","o":["Chỉ khi ban lãnh đạo quyết định đổi tên thương hiệu","Chỉ khi nhà đầu tư thiên thần muốn vào vòng tiếp theo","Để hạn chế thua lỗ hoặc khi đạt mục tiêu lợi nhuận đã định","Chỉ khi công ty đã niêm yết thành công trên sàn chứng khoán"],"a":2,"e":"Exit strategy: để hạn chế thua lỗ (limit losses) hoặc hiện thực hóa lợi nhuận (realize gains) khi đạt tiêu chí định trước.","s":"Lecture 6 · Slide 4"},
+{"d":2,"t":"tf","q":"Đúng hay Sai: Chỉ có IPO mới được xem là exit thành công, còn acquisition được xếp là exit thất bại.","a":1,"e":"Sai. IPO, acquisition và sale to financial buyers đều là exit thành công; chỉ closing down là exit thất bại.","s":"Lecture 6 · Slide 11"},
+{"d":2,"t":"mc","q":"Vì sao VC cần thoái vốn?","o":["Luật quy định quỹ phải bán toàn bộ cổ phần trong 12 tháng","LPs yêu cầu quỹ luôn giữ cổ phiếu vô thời hạn trong danh mục","Startup bị buộc phải niêm yết ngay sau vòng Series A","Quỹ có vòng đời cố định (khoảng 10 năm) và phải hoàn vốn cho LPs"],"a":3,"e":"VC quản lý quỹ huy động từ LPs với vòng đời cố định; VC thường có quyền yêu cầu IPO hoặc acquisition để tạo lợi nhuận.","s":"Lecture 6 · Slide 8"},
+{"d":3,"t":"mc","q":"Vì sao angel thường muốn thoái vốn sớm?","o":["Giải phóng vốn cho khoản đầu tư mới vì họ tạo nhiều giá trị nhất ở giai đoạn đầu","Vì angel phải hoàn vốn cho LPs khi vòng đời quỹ của họ đến hạn","Vì angel muốn tăng quyền biểu quyết của mình trong hội đồng quản trị","Vì luật cấm angel nắm giữ cổ phần của một công ty quá ba năm liên tục"],"a":0,"e":"Angel thêm nhiều giá trị nhất ở giai đoạn sớm nên muốn giải phóng vốn; áp lực hoàn vốn cho LPs là lý do của VC.","s":"Lecture 6 · Slide 8"},
+{"d":2,"t":"mc","q":"Đâu KHÔNG phải là lợi ích của IPO?","o":["Cung cấp thanh khoản cho cổ đông hiện hữu","Cổ phiếu có thể dùng như 'tiền tệ' khi mua lại doanh nghiệp khác","Giữ kín thông tin nhạy cảm của công ty trước công chúng","Huy động thêm vốn cho các kế hoạch mở rộng"],"a":2,"e":"Lợi ích IPO: liquidity, raises capital, acquisition currency, visibility. IPO đòi hỏi công bố thông tin, nên đó là chi phí.","s":"Lecture 6 · Slide 17, 19"},
+{"d":3,"t":"mc","q":"Đâu là chi phí gián tiếp (indirect cost) của IPO?","o":["Phí niêm yết được thu hằng năm khi công ty đã lên sàn","Phí trả cho ngân hàng đầu tư, kiểm toán viên và cố vấn","Hiện tượng định giá thấp (underpricing) khi chào bán lần đầu","Chi phí cơ hội do sự chú ý của ban quản lý bị chiếm dụng"],"a":3,"e":"Chi phí gián tiếp: cơ hội của sự chú ý ban quản lý, công bố thông tin nhạy cảm, chi phí minh bạch, giám sát cổ đông.","s":"Lecture 6 · Slide 18-19"},
+{"d":3,"t":"mc","q":"Năm bước chính của IPO theo đúng thứ tự?","o":["Due diligence → ngân hàng đầu tư → định giá → road show → bán và giao dịch","Ngân hàng đầu tư → due diligence → road show → định giá → bán và giao dịch","Định giá → ngân hàng đầu tư → due diligence → road show → bán và giao dịch","Ngân hàng đầu tư → road show → due diligence → định giá → bán và giao dịch"],"a":1,"e":"Investment bank, due diligence, road show, pricing, sale and trading.","s":"Lecture 6 · Slide 21"},
+{"d":3,"t":"mc","q":"Ba cơ chế định giá IPO chính?","o":["Fixed-price, free float và secondary","Auction, road show và underwriting","Book-building, fixed-price và auction","Book-building, greenshoe và lock-up"],"a":2,"e":"Three main pricing mechanisms: book-building, fixed-price, auction.","s":"Lecture 6 · Slide 24"},
+{"d":3,"t":"mc","q":"Greenshoe (over-allotment option) dùng để làm gì?","o":["Cho phép founder nắm cổ phiếu có nhiều quyền biểu quyết","Ổn định giá cổ phiếu sau khi phát hành","Quy định số cổ phiếu phát hành sơ cấp tối thiểu","Cấm insiders bán cổ phiếu trong một thời gian"],"a":1,"e":"Greenshoe ổn định giá thị trường; lock-up đảm bảo insiders không bán tháo.","s":"Lecture 6 · Slide 25"},
+{"d":2,"t":"mc","q":"Câu 'companies are bought, not sold' hàm ý điều gì?","o":["Cần làm công ty hiển thị trên thị trường để người mua tự tìm đến","Công ty không cần chuẩn bị gì trước khi có người ngỏ ý trả giá","Người bán nên giảm giá liên tục để buộc người mua quyết định thật nhanh","Chỉ nên đàm phán với duy nhất một người mua ngay từ giai đoạn đầu"],"a":0,"e":"Chuẩn bị acquisition = đưa công ty ra thị trường và làm nó hiển thị, đồng thời cân nhắc đánh đổi giữa chuyên biệt hóa cho một bên mua và tạo cạnh tranh.","s":"Lecture 6 · Slide 31"},
+{"d":2,"t":"mc","sc":1,"q":"Một hãng thương mại điện tử mua startup giao hàng để vào khu vực địa lý mới và loại bỏ một đối thủ. Động cơ chính?","o":["Technology: sở hữu sản phẩm hoặc R&D độc đáo của startup","Data or IP: nắm giữ bộ dữ liệu giá trị hoặc bằng sáng chế","Market access: khách hàng mới, khu vực mới, loại bỏ đối thủ","Talent: thuê trọn đội ngũ kỹ sư và nhà thiết kế tài năng"],"a":2,"e":"Market Access/Eliminate Competition: để có khách hàng mới, vào khu vực địa lý mới hoặc loại bỏ đối thủ.","s":"Lecture 6 · Slide 28"},
+{"d":3,"t":"mc","q":"Yếu tố định giá khác nhau thế nào giữa acquisition chiến lược và financial sale?","o":["Acquisition: giá trị synergy riêng cho người mua; financial sale: giá trị thị trường hợp lý","Acquisition: giá trị thị trường hợp lý; financial sale: giá trị synergy riêng cho người mua","Cả hai chỉ dựa vào giá trị sổ sách của tài sản hiện hữu","Cả hai đều do cơ quan nhà nước ấn định theo quy định"],"a":0,"e":"Acquisition: perceived synergy value (có thể premium cao); Financial sale: fair market value dựa trên hiệu quả tài chính hiện tại và dự phóng.","s":"Lecture 6 · Slide 43"},
+{"d":3,"t":"mc","q":"Management Buy-in (MBI) khác Management Buyout (MBO) thế nào?","o":["MBI: chỉ một phần cổ phần được bán ra, công ty vẫn giữ độc lập","MBI: đội quản lý bên ngoài cùng nhà đầu tư mua, thay ban quản lý cũ","MBI: mua bằng nợ có bảo đảm bởi tài sản và dòng tiền của công ty","MBI: ban quản lý hiện tại cùng góp vốn để mua lại công ty từ chủ cũ"],"a":1,"e":"MBO: ban quản lý hiện tại mua; MBI: đội bên ngoài mua và thay quản lý; LBO: tài trợ chủ yếu bằng nợ; secondary sale: chỉ bán một phần cổ phần.","s":"Lecture 6 · Slide 35"},
+{"d":2,"t":"mc","q":"Ba yếu tố chính quyết định hình thức exit?","o":["Life cycle, venture debt và seasoned financing","Pre-money, post-money và mức độ pha loãng","Fit, Invest, Ride, Exit và các bước của khung FIRE","Market forces, economic fundamentals, company dynamics"],"a":3,"e":"Ba yếu tố: market forces, economic fundamentals, company dynamics.","s":"Lecture 6 · Slide 46"},
+{"d":4,"t":"mc","sc":1,"b":1,"q":"FINAL CHALLENGE: Một công ty trưởng thành có dòng tiền ổn định. Một quỹ mua toàn bộ công ty, chủ yếu bằng nợ được đảm bảo bởi tài sản và dòng tiền tương lai của chính công ty, rồi dùng lợi nhuận để trả nợ. Đây là loại buyout nào?","o":["Management Buyout (MBO)","Management Buy-in (MBI)","Secondary sale","Leveraged Buyout (LBO)"],"a":3,"e":"LBO được tài trợ chủ yếu bằng nợ, trả bằng dòng tiền của công ty. MBO do ban quản lý hiện tại mua, MBI do đội quản lý bên ngoài mua, secondary sale chỉ bán một phần cổ phần.","s":"Lecture 6 · Slide 35"}]}
+]}
+</script>
+<script>
+/* ========= SAVE ========= */
+const Save={k:'kbc3',d:{best:{},stars:{},ach:{},xp:0,streak:0,lastPlayed:'',lv:1},
+ load(){try{Object.assign(this.d,JSON.parse(localStorage.getItem(this.k)||'{}'))}catch(e){}},
+ put(){try{localStorage.setItem(this.k,JSON.stringify(this.d))}catch(e){}}};
+
+/* ========= AUDIO ========= */
+const Snd={on:true,c:null,
+ ac(){return this.c=this.c||new(window.AudioContext||window.webkitAudioContext)()},
+t(f,d=.1,ty='square',v=.05,w=0){if(!this.on)return;try{const c=this.ac(),o=c.createOscillator(),g=c.createGain(),s=c.currentTime+w;o.type=ty;o.frequency.value=f;
+ g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(c.destination);o.start(s);o.stop(s+d)}catch(e){}},
+ click(){this.t(520,.06)},ok(){[523,659,784].forEach((f,i)=>this.t(f,.12,'square',.05,i*.09))},
+ no(){this.t(180,.25,'sawtooth')},tick(){this.t(900,.04)},
+ combo(){[784,988,1175].forEach((f,i)=>this.t(f,.1,'triangle',.06,i*.07+.3))},
+ levelup(){[523,659,784,1047,1319].forEach((f,i)=>this.t(f,.16,'triangle',.06,i*.09))},
+/* nhạc nền chiptune: bè bass + arpeggio + giai điệu + trống nhẹ, lặp 8 ô nhịp, lập lịch bằng Web Audio */
+bgm(on){clearInterval(this.mi);this.mi=0;if(!on||!this.on||document.hidden)return;
+ const c=this.ac();if(c.resume)c.resume();this.nt=c.currentTime+.1;this.si=this.si||0;
+ this.mi=setInterval(()=>{const c=this.ac();while(this.nt<c.currentTime+.5){this.step(this.nt-c.currentTime);this.nt+=.27;this.si++}},120)},
+step(w){const s=this.si%64,k=s&7,[r,th]=CHORD[s>>3],m=MEL[s],f=n=>440*2**((n-69)/12);
+ if(!(k&3)){this.t(f(r),.45,'triangle',.07,w);this.t(70,.12,'sine',.09,w)}
+ this.t(f(r+12+[0,th,7,th,0,7,th,7][k]),.3,'triangle',.03,w);
+ if(m)this.t(f(m),.35,'square',.02,w);
+ if(k&1)this.hat(w)},
+hat(w){const c=this.ac();if(!this.hb){const n=700;this.hb=c.createBuffer(1,n,c.sampleRate);const d=this.hb.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n)}
+ const s=c.createBufferSource(),g=c.createGain();s.buffer=this.hb;g.gain.value=.02;s.connect(g);g.connect(c.destination);s.start(c.currentTime+w)},
+tog(b){this.on=!this.on;b.textContent=this.on?'♪':'×';this.bgm(this.on&&this.go)}};
+const CHORD=[[48,4],[45,3],[41,4],[43,4],[48,4],[43,4],[45,3],[41,4]];
+const MEL=[76,0,79,0,76,0,74,0, 72,0,76,0,81,0,79,0, 77,0,76,0,72,0,69,0, 74,0,71,0,74,0,0,0,
+ 79,0,76,0,74,76,79,0, 79,0,74,0,71,0,74,0, 76,0,72,0,69,72,76,0, 77,0,76,0,72,0,0,0];
+document.addEventListener('pointerdown',()=>{if(!Snd.go){Snd.go=1;Snd.bgm(1)}});
+document.addEventListener('visibilitychange',()=>Snd.go&&Snd.bgm(1));
+
+/* ========= HELPERS ========= */
+const $=s=>document.querySelector(s),rnd=n=>Math.floor(Math.random()*n),ui=h=>$('#ui').innerHTML=h;
+const shuf=a=>{a=[...a];for(let i=a.length;i>1;){const j=rnd(i--);[a[i],a[j]]=[a[j],a[i]]}return a};
+const D=JSON.parse($('#data').textContent);
+const AC={first:['First Answer','Trả lời câu hỏi đầu tiên'],perf:['Perfect Run','Đúng 100% một bài từ 5 câu'],cb:['Combo x3','Đạt chuỗi 5 câu đúng liên tiếp'],nh:['No Hint','Hoàn thành bài không dùng gợi ý'],sp:['Speed Demon','3 lần trả lời nhanh trong một bài'],boss:['Final Boss','Vượt qua câu Final Challenge'],lv5:['Scholar','Đạt cấp độ 5'],streak:['On Fire','Chuỗi 3 ngày học liên tiếp']};
+function levelInfo(xp){let lv=1,cur=0,need=100;while(xp>=cur+need){cur+=need;lv++;need=Math.round(need*1.35)}return{lv,cur:xp-cur,need,prev:cur,total:cur+need}}
+function today(){return new Date().toDateString()}
+function yesterday(){return new Date(Date.now()-86400000).toDateString()}
+function setPlaying(on){document.body.classList.toggle('playing',on);if(!on){cv.style.display='';}}
+(function(){const t=today();if(Save.d.lastPlayed!==t){Save.d.streak=(Save.d.lastPlayed===yesterday()?Save.d.streak||0:0)+1;Save.d.lastPlayed=t;Save.put()}})();
+
+/* ========= CHARACTERS ========= */
+const ST=[
+ {n:'Minh',skin:'#f1c27d',hair:'#2b1b12',shirt:'#41a6f6',pants:'#29366f',shoes:'#1a1c2c'},
+ {n:'Lan', skin:'#e0ac69',hair:'#1c1c22',shirt:'#b13e53',pants:'#3b2a1a',shoes:'#1a1c2c',longHair:1,bow:'#ffcd75'},
+ {n:'Nam', skin:'#f1c27d',hair:'#7a4a21',shirt:'#38b764',pants:'#1f4d3a',shoes:'#1a1c2c'},
+ {n:'Linh',skin:'#c68642',hair:'#3b2219',shirt:'#ef7d57',pants:'#4a1f2a',shoes:'#1a1c2c',longHair:1},
+ {n:'An',  skin:'#ffdbac',hair:'#d6a436',shirt:'#73eff7',pants:'#2a2d4a',shoes:'#1a1c2c'}
+];
+const TE={n:'Cô giáo',skin:'#f1c27d',hair:'#5a2f18',shirt:'#f4f4f4',pants:'#7b4dab',shoes:'#1a1c2c',longHair:1,glasses:1,female:1,bow:'#b13e53'};
+const POS=[[108,120],[170,120],[232,120],[140,155],[200,155]];
+const cv=$('#cv'),ctx=cv.getContext('2d');
+let T=0,sel=-1,mood='n',tm='n',fx=[],G=null,shake=0;
+
+const P=(c,a,b,w=1,h=1)=>{ctx.fillStyle=c;ctx.fillRect(a|0,b|0,w,h)};
+
+/* === draw head only into small canvas === */
+function drawHead(canvas,ch,mood){
+ const c=canvas.getContext('2d'),W=canvas.width,H=canvas.height;
+ c.imageSmoothingEnabled=false;c.clearRect(0,0,W,H);
+ const sc=Math.max(1,Math.floor(Math.min(W,H)/9));
+ const ox=Math.floor((W-8*sc)/2), oy=Math.floor((H-9*sc)/2);
+ c.save();c.translate(ox,oy);c.scale(sc,sc);
+ const Q=(col,x,y,w=1,h=1)=>{c.fillStyle=col;c.fillRect(x,y,w,h)};
+ const sk=ch.skin,hr=ch.hair;
+ /* hair back */
+ if(ch.longHair){Q(hr,-6,-27,2,10);Q(hr,4,-27,2,10);}
+ /* head */
+ Q(sk,-4,-28,8,8);
+ Q('rgba(0,0,0,0.12)',3,-28,1,8);
+ /* hair top */
+ Q(hr,-5,-30,10,3);
+ Q(hr,-5,-28,2,4);Q(hr,3,-28,2,4);
+ if(ch.female){Q(hr,-2,-32,4,2);Q(hr,-3,-31,6,2);}
+ /* glasses */
+ if(ch.glasses){
+   Q('rgba(168,230,255,0.4)',-4,-26,3,3);
+   Q('rgba(168,230,255,0.4)',1,-26,3,3);
+   Q('#1c1c22',-5,-27,4,1);Q('#1c1c22',-5,-23,4,1);Q('#1c1c22',-5,-27,1,4);Q('#1c1c22',-2,-27,1,4);
+   Q('#1c1c22',1,-27,4,1);Q('#1c1c22',1,-23,4,1);Q('#1c1c22',1,-27,1,4);Q('#1c1c22',4,-27,1,4);
+   Q('#1c1c22',-1,-25,2,1);
+   Q('#1c1c22',-6,-25,1,1);Q('#1c1c22',5,-25,1,1);
+ }
+ /* eyes */
+ const blink=(performance.now()%2500)<160;
+ if(blink){Q('#1c1c22',-3,-25,2,1);Q('#1c1c22',1,-25,2,1);}
+ else{Q('#1c1c22',-3,-25,1,2);Q('#1c1c22',2,-25,1,2);Q('#fff',-3,-26,1,1);Q('#fff',2,-26,1,1);}
+ /* blush */
+ Q('rgba(239,125,87,0.35)',-4,-22,1,1);Q('rgba(239,125,87,0.35)',3,-22,1,1);
+ /* mouth */
+ if(mood==='h'){Q('#8a2c3b',-2,-21,4,1);Q('#8a2c3b',-3,-22,1,1);Q('#8a2c3b',2,-22,1,1);}
+ else if(mood==='s'){Q('#8a2c3b',-1,-20,3,1);Q('#8a2c3b',-2,-21,1,1);Q('#8a2c3b',2,-21,1,1);}
+ else{Q('#8a2c3b',-1,-21,3,1);}
+ c.restore();
+}
+
+/* === full person sprite (canvas scene) === */
+function person(cx,cy,o,k,mood,raised,t){
+ ctx.save();ctx.translate(cx|0,cy|0);ctx.scale(k,k);
+ const bob=Math.round(Math.sin((t+cx*0.7)/22)*0.7);ctx.translate(0,bob);
+ const sk=o.skin,hr=o.hair,sh=o.shirt,pt=o.pants,so=o.shoes;
+ P(so,-5,-2,3,2);P(so,2,-2,3,2);
+ P(pt,-4,-8,3,6);P(pt,1,-8,3,6);
+ if(o.female){P(pt,-6,-11,12,4);P(pt,-6,-11,12,1);}
+ P(sh,-5,-19,10,9);
+ P('rgba(0,0,0,0.15)',5,-19,1,9);P('rgba(255,255,255,0.2)',-5,-19,1,9);
+ P('#fff',-3,-19,6,1);P('#fff',-2,-18,4,1);
+ if(o.bow){P(o.bow,-3,-18,6,2);P(o.bow,-1,-17,2,2);P('rgba(0,0,0,0.35)',-1,-17,1,1);}
+ if(o.tie){P('#b13e53',-1,-17,2,5);P('#8a2c3b',-1,-17,2,1);}
+ P(sh,-7,-19,2,6);P(sk,-7,-13,2,4);
+ if(raised){P(sh,5,-19,2,4);P(sk,5,-26,2,8);P(sk,4,-27,4,2);}
+ else{P(sh,5,-19,2,6);P(sk,5,-13,2,4);}
+ P(sk,-2,-20,4,1);
+ P(sk,-4,-28,8,8);
+ P('rgba(0,0,0,0.12)',3,-28,1,8);
+ if(o.longHair){P(hr,-6,-27,2,10);P(hr,4,-27,2,10);P(hr,-6,-17,2,1);P(hr,4,-17,2,1);}
+ P(hr,-5,-30,10,3);P(hr,-5,-28,2,4);P(hr,3,-28,2,4);
+ if(o.female){P(hr,-2,-32,4,2);P(hr,-3,-31,6,2);}
+ if(o.glasses){
+   P('rgba(168,230,255,0.35)',-4,-26,3,3);P('rgba(168,230,255,0.35)',1,-26,3,3);
+   P('#1c1c22',-5,-27,4,1);P('#1c1c22',-5,-23,4,1);P('#1c1c22',-5,-27,1,4);P('#1c1c22',-2,-27,1,4);
+   P('#1c1c22',1,-27,4,1);P('#1c1c22',1,-23,4,1);P('#1c1c22',1,-27,1,4);P('#1c1c22',4,-27,1,4);
+   P('#1c1c22',-1,-25,2,1);
+   P('#1c1c22',-6,-25,1,1);P('#1c1c22',5,-25,1,1);
+ }
+ const blink=(t%220)<4;
+ if(blink){P('#1c1c22',-3,-25,2,1);P('#1c1c22',1,-25,2,1);}
+ else{P('#1c1c22',-3,-25,1,2);P('#1c1c22',2,-25,1,2);P('#fff',-3,-26,1,1);P('#fff',2,-26,1,1);}
+ P('rgba(239,125,87,0.35)',-4,-22,1,1);P('rgba(239,125,87,0.35)',3,-22,1,1);
+ const my=-21;
+ if(mood==='h'){P('#8a2c3b',-1,my,3,1);P('#8a2c3b',-2,my-1,1,1);P('#8a2c3b',2,my-1,1,1);}
+ else if(mood==='s'){P('#8a2c3b',-1,my+1,3,1);P('#8a2c3b',-2,my,1,1);P('#8a2c3b',2,my,1,1);}
+ else if(mood==='t'){const op=(Math.floor(t/5)%2);P('#8a2c3b',-1,my,3,op?2:1);}
+ else{P('#8a2c3b',-1,my,3,1);}
+ ctx.restore();
+}
+function desk(X,Y){
+ P('#c28a52',X-13,Y-6,26,3);P('#8b5a2b',X-13,Y-3,26,6);
+ P('#5a3a1c',X-11,Y+3,2,7);P('#5a3a1c',X+9,Y+3,2,7);
+ P('#f4f4f4',X+2,Y-8,7,2);P('#38b764',X-8,Y-8,5,2);
+ P('#1a1c2c',X+5,Y-8,1,2);P('#1a1c2c',X-6,Y-8,1,2);
+}
+function burst(x,y){for(let i=0;i<32;i++)fx.push({x,y:y-26,vx:(Math.random()-.5)*3.4,vy:-Math.random()*3-1,c:['#ffcd75','#38b764','#fff','#41a6f6','#ef7d57'][rnd(5)],l:60,g:.08})}
+function sweat(x,y){for(let i=0;i<4;i++)fx.push({x:x+5+i*2,y:y-28,vx:.3,vy:-.6,c:'#41a6f6',l:32,g:.02})}
+function dust(){if(T%8===0)fx.push({x:rnd(320),y:rnd(80)+10,vx:(Math.random()-.5)*.2,vy:-.05,c:'rgba(255,255,255,0.35)',l:180,g:0,s:1})}
+function pop(txt,cls){const p=$('#pop');p.textContent=txt;p.className='';void p.offsetWidth;p.className='go '+cls}
+
+function scene(){
+ T++;
+ ctx.save();
+ if(shake>0.3){ctx.translate((Math.random()-.5)*shake*2,(Math.random()-.5)*shake*2);shake*=0.85;}else{shake=0;}
+ P('#5d6dc4',0,0,320,100);P('#4a58a8',0,94,320,8);
+ for(let i=0;i<16;i++)P('rgba(255,255,255,0.03)',i*20,0,3,100);
+ const lg=ctx.createLinearGradient(0,0,0,100);lg.addColorStop(0,'rgba(255,255,255,0.10)');lg.addColorStop(1,'rgba(255,255,255,0)');
+ ctx.fillStyle=lg;ctx.fillRect(0,0,320,100);
+ P('#c28a52',0,100,320,80);
+ for(let i=0;i<10;i++)P('#a8723f',0,104+i*8,320,1);
+ P('#8b5a2b',0,158,320,2);
+ P('#3b2a1a',74,6,182,70);P('#4a3a24',74,6,182,2);P('#1f4d3a',78,10,174,62);
+ P('rgba(255,255,255,0.04)',90,20,60,3);P('rgba(255,255,255,0.04)',120,40,80,2);
+ P('#c28a52',80,72,170,3);P('#8b5a2b',80,75,170,1);
+ P('#f4f4f4',92,70,7,2);P('#ffcd75',104,70,5,2);P('#a8e6ff',114,70,4,2);P('#ef7d57',124,70,4,2);
+ ctx.textAlign='center';
+ ctx.font='16px VT323,monospace';ctx.fillStyle='#e8f0e0';
+ ctx.fillText(G&&G.q?'CHƯƠNG '+(G.q.ch+1)+' · CÂU '+(G.i+1):'KIỂM TRA BÀI CŨ',165,44);
+ ctx.font='12px VT323,monospace';ctx.fillStyle='#bcd8c0';
+ ctx.fillText(G&&G.q?D.chapters[G.q.ch].title:'Entrepreneurial Finance',165,60);
+ P('#f4f4f4',270,12,26,26);P('#1a1c2c',272,14,22,22);P('#f4f4f4',282,24,2,2);
+ P('#f4f4f4',283,24,1,-6);
+ ctx.save();ctx.translate(283,24);ctx.rotate(T/30);P('#f4f4f4',0,-8,1,8);ctx.restore();
+ P('#f4f4f4',14,20,36,46);P('#ef7d57',18,24,28,10);P('#38b764',18,38,28,4);P('#41a6f6',18,46,20,4);P('#ffcd75',18,54,28,8);
+ ctx.globalAlpha=.08;ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(280,66);ctx.lineTo(320,66);ctx.lineTo(260,140);ctx.lineTo(180,140);ctx.fill();ctx.globalAlpha=1;
+ dust();
+ ST.forEach((s,i)=>{const[X,Y]=POS[i],on=i==sel;person(X,Y,s,1,on?mood:'n',on&&G&&G.st=='ask',T);desk(X,Y);
+   if(on&&G&&G.st=='ask'){const b=Math.sin(T/8)*2|0;P('#ffcd75',X-3,Y-42+b,7,2);P('#ffcd75',X-2,Y-40+b,5,2);P('#ffcd75',X-1,Y-38+b,3,2);}
+ });
+ person(46,126,TE,2,tm,G&&G.st=='ask',T);
+ if(G&&G.st=='ask'){const sway=Math.round(Math.sin(T/12)*1.5);for(let i=0;i<10;i++)P('#8b5a2b',56+i+sway,118-i*3,2,3);P('#1a1c2c',66+sway,86,3,3);}
+ if(G&&G.st=='ask'&&sel>=0){const[X,Y]=POS[sel];for(let k=0;k<10;k++)P('#ffcd75',58+(X-10-58)*k/9|0,100+(Y-30-100)*k/9|0,2,2);}
+ fx=fx.filter(p=>p.l>0);
+ fx.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=(p.g||0);p.l--;if(p.s){P(p.c,p.x|0,p.y|0,1,1)}else{P(p.c,p.x|0,p.y|0,2,2)}});
+ ctx.restore();
+}
+/* timer update (updates the DOM elements inside the quiz screen) */
+function tick(){
+ if(!G||G.st!='ask')return;
+ const rem=G.tl-(performance.now()-G.t0)/1000;
+ const b=$('#bar');if(!b)return;
+ b.style.width=Math.max(0,rem/G.tl*100)+'%';
+ b.className=rem<6?'lo':'';
+ const el=$('#tn');const n=Math.max(Math.ceil(rem),0);
+ if(el&&el.textContent!=n){el.textContent=n;if(n<=5&&n>0)Snd.tick()}
+ if(rem<=0)ans(-1);
+}
+function loop(){scene();tick();requestAnimationFrame(loop)}
+
+/* ========= MENU ========= */
+function lvBar(){
+ const L=levelInfo(Save.d.xp),p=Math.round(L.cur/L.need*100);
+ return `<div class=lvwrap><span class=lv>LV ${L.lv}</span><div class=lvbar><div class=lvfill style="width:${p}%"></div></div><span class=lvtxt>${L.cur}/${L.need} XP</span><span class=streak>🔥 ${Save.d.streak||0} ngày</span></div>`;
+}
+function menu(){Snd.click();sel=-1;G=null;tm='n';setPlaying(false);
+ ui(`<h1>KIỂM TRA<br>BÀI CŨ</h1><p class=sub>PIXEL CLASSROOM · 16-BIT</p>${lvBar()}<div class=bt><button onclick="chapters()">▶ Bắt đầu</button><button onclick="ach()">★ Thành tích</button><button onclick="guide()">? Hướng dẫn</button></div>`)}
+function card(k,a,b,n){const s=Save.d.stars[k]||0;return `<div class=cd onclick="play('${k}')"><b>${a}</b><span>${b}</span><i>${n} câu · Best ${Save.d.best[k]||0} điểm</i><em>${'★'.repeat(s)+'☆'.repeat(3-s)}</em></div>`}
+function chapters(){Snd.click();setPlaying(false);
+ ui(`<h2>CHỌN CHƯƠNG</h2>${lvBar()}<div class=gr>${D.chapters.map((c,i)=>card(i,'CHƯƠNG '+(i+1),c.title,c.qs.length)).join('')}${card('q','QUICK QUIZ','10 câu ngẫu nhiên từ mọi chương',10)}</div><button class=sm onclick="menu()">◀ Menu</button>`)}
+function ach(){Snd.click();setPlaying(false);
+ ui(`<h2>THÀNH TÍCH</h2>${lvBar()}<div class=gr>${Object.entries(AC).map(([k,v])=>`<div class="cd ${Save.d.ach[k]?'':'lk'}"><b>${Save.d.ach[k]?'★':'☆'} ${v[0]}</b><span>${v[1]}</span></div>`).join('')}</div><button class=sm onclick="menu()">◀ Menu</button>`)}
+function guide(){Snd.click();setPlaying(false);
+ ui(`<h2>HƯỚNG DẪN</h2><p>• Cô giáo gọi một bạn lên bảng — bạn chọn đáp án thay bạn ấy.</p><p>• Mỗi câu hỏi mở ra <b>màn hình Quiz riêng</b>: bong bóng hội thoại của nhân vật chứa câu hỏi, bên dưới là 4 đáp án. Không cần cuộn.</p><p>• Điểm: Easy 10 · Medium 20 · Hard 30 · Expert 50. Chuỗi 3 đúng = x2, 5 đúng = x3. Trả lời nhanh +5. Câu FINAL CHALLENGE nhân đôi điểm.</p><p>• Gợi ý: 50:50 (-10), gợi ý nguồn (-5).</p><p>• Nút ♪ góc dưới bên phải bật/tắt nhạc nền và âm thanh.</p><p>• Kiếm XP để lên cấp, giữ streak mỗi ngày để mở thành tích 🔥.</p><button class=sm onclick="menu()">◀ Menu</button>`)}
+
+/* ========= GAME FLOW ========= */
+function play(k){
+ Snd.click();
+ let qs;
+ if(k=='q')qs=shuf(D.chapters.flatMap((c,i)=>c.qs.filter(q=>!q.b).map(q=>({...q,ch:i})))).slice(0,10);
+ else{const c=D.chapters[+k];qs=[...shuf(c.qs.filter(q=>!q.b)),...c.qs.filter(q=>q.b)].map(q=>({...q,ch:+k}))}
+ G={k,qs,i:0,sc:0,ok:0,cb:0,mx:0,h:0,fast:0,boss:0,tm:[],last:-1};
+ nxt();
+}
+function nxt(){
+ if(G.i>=G.qs.length)return fin();
+ setPlaying(true);
+ const q=G.q=G.qs[G.i];let o=q.t=='tf'?['Đúng','Sai']:q.o,c=q.a;
+ if(q.t!='tf'){const p=shuf(o.map((v,i)=>[v,i]));o=p.map(a=>a[0]);c=p.findIndex(a=>a[1]==q.a)}
+ G.o=o;G.c=c;G.hid=[];G.tl=[30,40,50,60][q.d-1];G.t0=performance.now();G.st='ask';
+ let s;do s=rnd(5);while(s==G.last);G.last=sel=s;mood='n';tm='t';
+ const dots=G.qs.map((_,i)=>`<div class="qdot ${i<G.i?'done':i==G.i?'cur':''}"></div>`).join('');
+ const stars='★'.repeat(q.d)+'☆'.repeat(4-q.d);
+ ui(`<div class=qscreen>
+   <div class=qtop>
+     <span class=qchap>CH.${q.ch+1} · ${stars}</span>
+     <div class=qdots>${dots}</div>
+     <span class=qscore>${G.sc}<small>điểm</small></span>
+   </div>
+   <div class=qhero>
+     <div class=qavatar><canvas id=av width=72 height=72></canvas></div>
+     <div class=qbubble>${q.sc?'<span class=qtag>TÌNH HUỐNG</span>':''}${q.q}</div>
+   </div>
+   <div class=qtimer><div id=bar></div><b id=tn>${G.tl}</b></div>
+   <div class=qopts>
+     ${o.map((v,i)=>`<button id=o${i} class=qopt onclick="ans(${i})"><b>${'ABCD'[i]}</b><span>${v}</span></button>`).join('')}
+   </div>
+   <div class=qtools>
+     <button onclick="hint(1)">50:50 (-10)</button>
+     <button onclick="hint(2)">💡 Gợi ý nguồn (-5)</button>
+     <span id=combo></span>
+   </div>
+   <div id=fb class=fb-overlay></div>
+ </div>`);
+ drawHead($('#av'),ST[s],'n');
+}
+function hint(n){
+ if(!G||G.st!='ask')return;
+ if(n==1){
+   if(G.o.length<3){/* nothing */}
+   if(G.hid.length)return;
+   G.hid=shuf([0,1,2,3].filter(i=>i!=G.c&&i<G.o.length)).slice(0,2);
+   G.hid.forEach(i=>{const b=$('#o'+i);if(b){b.disabled=true;b.style.opacity=.22}});
+ } else {
+   if(G.hintShown)return;
+   G.hintShown=true;
+   // tiny toast in the tools area
+   const t=document.createElement('div');
+   t.style.cssText='flex-basis:100%;color:var(--sky);font-size:16px;margin-top:4px';
+   t.textContent='💡 Cô gợi ý: xem lại '+G.q.s;
+   $('.qtools').appendChild(t);
+ }
+ G.h++;G.sc=Math.max(0,G.sc-(n==1?10:5));
+ const s=$('.qscore');if(s)s.innerHTML=G.sc+'<small>điểm</small>';
+ Snd.click();
+}
+function ans(k){
+ if(!G||G.st!='ask')return;
+ G.st='fb';
+ const q=G.q,ok=k==G.c,rem=G.tl-(performance.now()-G.t0)/1000;
+ G.tm.push(Math.min(G.tl,Math.max(0,G.tl-rem)));
+ let pt=0,m=1;
+ if(ok){
+   G.ok++;G.cb++;G.mx=Math.max(G.mx,G.cb);
+   m=G.cb>=5?3:G.cb>=3?2:1;
+   const sp=rem>G.tl/2?5:0;if(sp)G.fast++;
+   pt=([10,20,30,50][q.d-1]*(q.b?2:1)+sp)*m;
+   G.sc+=pt;if(q.b)G.boss=1;
+   mood='h';tm='h';Snd.ok();if(m>1)Snd.combo();
+   burst(POS[sel][0],POS[sel][1]);
+   pop('+'+pt+(m>1?'  COMBO x'+m:''),'g');
+ } else {
+   G.cb=0;mood='s';tm='s';Snd.no();sweat(POS[sel][0],POS[sel][1]);shake=8;
+   pop(k<0?"TIME'S UP!":'NOT QUITE','r');
+ }
+ // visual state of options
+ document.querySelectorAll('.qopt').forEach(b=>b.disabled=true);
+ const okBtn=$('#o'+G.c);if(okBtn)okBtn.classList.add('ok');
+ if(!ok&&k>=0){const noBtn=$('#o'+k);if(noBtn)noBtn.classList.add('no')}
+ const s=$('.qscore');if(s)s.innerHTML=G.sc+'<small>điểm</small>';
+ if(G.cb>=3){const cb=$('#combo');if(cb){cb.textContent='COMBO x'+(G.cb>=5?3:2);cb.classList.add('on')}}
+ // avatar mood update
+ drawHead($('#av'),ST[sel],mood);
+ // Feedback overlay
+ const fb=$('#fb');
+ fb.innerHTML=`<div class="fbinner ${ok?'g':'r'}">
+   <h3>${ok?'✓ CHÍNH XÁC! +'+pt:k<0?"⏱ TIME'S UP!":'✕ CHƯA ĐÚNG'}</h3>
+   <p>👩‍🏫 <b>Cô giáo:</b> ${ok?['Giỏi lắm!','Chuẩn rồi, em nắm bài tốt!','Rất tốt, cứ thế phát huy!'][rnd(3)]:'Không sao, mình cùng xem lại nhé.'}</p>
+   <p><b>Đáp án:</b> ${'ABCD'[G.c]}. ${G.o[G.c]}</p>
+   <p>${q.e}</p>
+   <small>📖 Nguồn: ${q.s}</small>
+   <button class=next-btn onclick="G.i++;nxt()">${G.i+1>=G.qs.length?'Xem kết quả ▶':'Câu tiếp ▶'}</button>
+ </div>`;
+ fb.classList.add('on');
+}
+function fin(){
+ G.st='end';sel=-1;tm='n';setPlaying(false);
+ const n=G.qs.length,acc=Math.round(G.ok/n*100),st=acc>=90?3:acc>=70?2:acc>=40?1:0,d=Save.d,got=[];
+ const lvBefore=levelInfo(d.xp).lv;
+ if(G.sc>(d.best[G.k]||0))d.best[G.k]=G.sc;
+ d.stars[G.k]=Math.max(d.stars[G.k]||0,st);
+ d.xp+=G.sc;
+ const lvAfter=levelInfo(d.xp).lv;
+ const A=(id,c)=>{if(c&&!d.ach[id]){d.ach[id]=1;got.push(AC[id][0])}};
+ A('first',1);A('perf',G.ok==n&&n>=5);A('cb',G.mx>=5);A('nh',!G.h&&n>=5);A('sp',G.fast>=3);A('boss',G.boss);
+ A('lv5',lvAfter>=5);A('streak',d.streak>=3);
+ Save.put();
+ const avg=(G.tm.reduce((a,b)=>a+b,0)/n).toFixed(1);
+ const lvUp=lvAfter>lvBefore;
+ ui(`<div class=res>
+   <h2>${lvUp?'🎉 LEVEL UP!':'CLASS RESULT'}</h2>
+   ${lvUp?`<p style="color:var(--gold);font-family:'Press Start 2P',monospace;font-size:12px">LV ${lvBefore} → LV ${lvAfter}</p>`:''}
+   <div class=big>${G.sc}</div><p style="margin-top:-6px">POINTS</p>
+   <div class=stars>${'★'.repeat(st)+'☆'.repeat(3-st)}</div>
+   <p>Đúng: ${G.ok}/${n} · Accuracy: ${acc}%</p>
+   <p>Best combo: x${G.mx} · Trung bình ${avg}s/câu · XP: ${d.xp}</p>
+   <h3>${acc>=90?'EXCELLENT!':acc>=70?'GOOD JOB!':'KEEP GOING!'}</h3>
+   ${got.map(a=>`<p class=ac>★ Thành tích mới: ${a}</p>`).join('')}
+   <div class=bt><button onclick="play('${G.k}')">Chơi lại</button><button onclick="chapters()">Chọn chương</button></div>
+ </div>`);
+ if(st>1){Snd.combo();for(let i=0;i<6;i++)setTimeout(()=>burst(rnd(200)+60,rnd(40)+120),i*180)}
+ if(lvUp)Snd.levelup();
+}
+Save.load();menu();loop();
+</script></body></html>
